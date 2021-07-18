@@ -93,8 +93,8 @@ class Game:
             previous_guess = guess
 
             if (player.type == "user"): # if the player is an user
-                guess = list(map(int,input("\nInsira seu palpite: ").strip().split()))
-                print(guess)
+                guess = list(map(int,input("Insira seu palpite: ").strip().split()))
+                print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
             else: # if the player is a computer
                 guess = player.make_guess(previous_guess,self.list_players)
 
@@ -121,8 +121,8 @@ class Game:
                         player = next(players_iterator)
                     player.remove_dice(1) # remove um dado do jogador que fez o palpite anterior
                     print("Julgamento correto.\n")
-                print("Fim da rodada.\n")
-                print("--------------------")
+                print("Fim da rodada.")
+                print("--------------------\n")
 
 
 

@@ -162,7 +162,7 @@ class Player:
                       f"\tProbabilidade de haver mais de {amount} dado(s) "
                       f"mostrando o número {figure}:"
                       f"\t{p_initial_guess_most_figures_in_hand}\n")"""
-                print(f"{self.__name}:\tPalpite: {amount} dados mostrando o número {figure}\n")
+                print(f"{self.__name}:\tPalpite: {amount} dados mostrando o número {figure}")
                 return(initial_guess)
 
             # calcula as probabilidades do palpite anterior estar correto ou incorreto
@@ -210,7 +210,7 @@ class Player:
                   f"\tProbabilidade de haver mais de (ou exatamente) {guess_amount} dado(s) "
                   f"mostrando o número {guess_figure}:"
                   f"\t{p_best_guess}\n")"""
-            print(f"{self.__name}:\tPalpite: {guess_amount} dados mostrando o número {guess_figure}\n")
+            print(f"{self.__name}:\tPalpite: {guess_amount} dados mostrando o número {guess_figure}")
             return(best_guess)
 
 """
