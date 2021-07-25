@@ -19,8 +19,14 @@ class Player:
     def roll_dice(self):
         self.__set_of_dice.roll()
 
-    def show_dice(self):
-        print(self.__set_of_dice.dice_list)
+    def reveal_dice(self):
+        print(self.__name + ":\t", self.__set_of_dice.dice_list)
+
+    def show_dice_hide_figures(self):
+        list_hidden_dice = ["\u25A2" for i in range(self.number_of_dice_remaining)]
+        print(self.__name + ":\t", list_hidden_dice)
+
+
 
     def summary(self):
         print(self.__name + ":\t", self.__set_of_dice.dice_list)
@@ -150,9 +156,9 @@ class Player:
             if(previous_guess == [0,0]):
                 maximo = 1
                 figure=1
-                for i in range(0,7):
+                for i in range(0,7): # TODO: começar de um número aleatório
                     temp = self.count_figures_on_hand(i)
-                    if (temp > maximo):
+                    if (temp >= maximo):
                         maximo = temp
                         figure = i
                 amount = maximo

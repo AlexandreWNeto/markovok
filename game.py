@@ -7,6 +7,7 @@ Esta classe define uma rodada do jogo
 from player import Player
 from itertools import cycle
 import secrets
+from time import sleep
 
 class Game:
     def __init__(self,
@@ -22,7 +23,10 @@ class Game:
         self.number_of_rounds = number_of_rounds
         self.dict_players={}
         self.list_players=[]
+        self.iterator_players = cycle(self.list_players)
         self.number_of_remaining_active_players = self.number_of_players_human + self.number_of_players_computer
+        self.n_right_decisions = 0
+        self.n_wrong_decisions = 0
 
     def create_players(self):
         for i in range(self.number_of_players_human):
@@ -54,10 +58,18 @@ class Game:
         self.list_players.remove(player)
         self.number_of_remaining_active_players = len(self.list_players)
 
-    def show_table(self):
+    def reveal_table(self):
         for player in self.list_players:
-            player.show_dice()
+            player.reveal_dice()
+        print("\n")
 
+    def show_table_dice_hidden(self):
+        for player in self.list_players:
+            if player.type == "user":
+                player.reveal_dice()
+            else:
+                player.show_dice_hide_figures()
+        print("\n")
 
 
     def count_figure_in_table(self,figure):
@@ -66,6 +78,27 @@ class Game:
             count = count + player.count_figures_on_hand(figure)
         return(count)
 
+
+    def get_player_guess(self,player,previous_guess):
+        if (player.type == "user"):  # if the player is an user
+            guess = list(map(int, input(
+                "Escreva seu palpite\nFormatos de palpite possíveis:\n"
+                "\tnúmero_de_dados figura, separados por um espaço (ex.: 1 2)\n"
+                "\t0  (caso ache que o palpite anterior esteja exatamente correto)\n"
+                "\t-1 (caso ache que o palpite anterior esteja incorreto)\n").strip().split()))
+            if(guess[0]==0): # palpite exato
+                print(f"{player.get_player_name()}:\tPalpite exato!")
+                guess = [-1,0]
+            elif(guess[0]==-1): # palpite incorreto
+                print(f"{player.get_player_name()}:\tPalpite incorreto!")
+                guess = [-1, -1]
+            else:
+                print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
+        else:  # if the player is a computer
+            guess = player.make_guess(previous_guess, self.list_players)
+
+        return(guess)
+
     def start_round(self):
         guess = [0,0]
 
@@ -73,63 +106,62 @@ class Game:
         for player in self.list_players:
             player.roll_dice()
 
-        players_iterator = cycle(self.list_players)
+        self.players_iterator = cycle(self.list_players)
+
+        self.show_table_dice_hidden()
 
         # TODO: o jogador que começa deve ser aquele que fez o penúltimo palpite
         # embaralha a lista de jogadores
         for _ in range(secrets.choice(list(range(len(self.list_players))))):
-            next(players_iterator)
+            next(self.players_iterator)
 
         while(True):
-            player = next(players_iterator) # é a vez de jogar do próximo jogador
+            player = next(self.players_iterator) # é a vez de jogar do próximo jogador
 
             if (player.type == "user"): # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
                 player.summary()
 
             while(player.number_of_dice_remaining == 0): # se um jogador tiver perdido todos os dados
-                player = next(players_iterator) # passa para o próximo jogador
-
+                player = next(self.players_iterator) # passa para o próximo jogador
 
             previous_guess = guess
 
-            if (player.type == "user"): # if the player is an user
-                guess = list(map(int,input("Insira seu palpite: ").strip().split()))
-                print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
-            else: # if the player is a computer
-                guess = player.make_guess(previous_guess,self.list_players)
-
+            guess = self.get_player_guess(player,previous_guess)
 
             if (guess[0] <= 0): # se alguém tiver julgado o palpite anterior incorreto/exato
                 # a rodada acabará
-                self.show_table() # revela os dados da mesa
-
+                self.reveal_table() # revela os dados da mesa
+                #sleep(1)
                 if(guess[1]==0): # se alguém tiver julgado o palpite anterior exato
                     if(self.evaluate_guess(guess,previous_guess) == "wrong"):
                         player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                         print("Julgamento incorreto.\n")
                     else:
                         for _ in range(len(self.list_players) - 1):
-                            player = next(players_iterator)
+                            player = next(self.players_iterator)
                         player.remove_dice(1)  # remove um dado de todos os outros jogadores
                         print("Julgamento correto.\n")
 
                 elif(self.evaluate_guess(guess,previous_guess) == "wrong"): # se alguém tiver julgado o palpite anterior exato
                     player.remove_dice(1) # remove um dado do jogador que fez o julgamento errado
                     print("Julgamento incorreto.\n")
+                    self.n_wrong_decisions = self.n_wrong_decisions + 1
                 else:
                     for _ in range(len(self.list_players)-1):
-                        player = next(players_iterator)
+                        player = next(self.players_iterator)
                     player.remove_dice(1) # remove um dado do jogador que fez o palpite anterior
                     print("Julgamento correto.\n")
+                    self.n_right_decisions = self.n_right_decisions + 1
+                #sleep(1)
                 print("Fim da rodada.")
                 print("--------------------\n")
-
+                #sleep(1.5)
 
 
                 if(player.number_of_dice_remaining == 0):
                     self.remove_player_from_list(player)
                 break
-
+            #sleep(1)
         return()
 
 
