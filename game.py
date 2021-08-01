@@ -106,7 +106,7 @@ class Game:
 
         self.players_iterator = cycle(self.list_players)
 
-        #self.show_table_dice_hidden()
+        self.show_table_dice_hidden()
 
         # TODO: o jogador que começa deve ser aquele que fez o penúltimo palpite
         # embaralha a lista de jogadores
