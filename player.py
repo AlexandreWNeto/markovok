@@ -122,6 +122,8 @@ class Player:
                 probability = 0
             elif((n_other_dice < guess_amount) and (n_guess_at_hand == 0)): # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
                 probability = 0
+            elif(guess_amount > n_dice): # se o número de dados no palpite for maior do que o número de dados na mesa
+                probability = 0
             else:
                 probability = self.bernoulli(guess_amount-n_guess_at_hand,n_other_dice)
             #print(f"{self.__name}:\tProbabilidade de haver exatamente {guess_amount} dado(s) mostrando o número {guess_figure}:\t{probability}")
@@ -189,6 +191,10 @@ class Player:
             new_guess = self.min_next_guess(previous_guess) # determine o mínimo palpite próximo
 
             while(True): # busca exaustiva pelo palpite com maior probabilidade de sucesso
+                new_guess_amount = new_guess[0]
+
+                if(new_guess_amount > self.count_dice_in_table(players_in_table) - self.number_of_dice_remaining):
+                    break
 
                 p_new_guess = self.calculate_probability(new_guess,players_in_table,tipo = ">=")  # calcula a probabilidade do menor próximo palpite
 

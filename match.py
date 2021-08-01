@@ -1,5 +1,7 @@
 """
 Esta classe define uma rodada do jogo
+
+
 """
 
 from player import Player
@@ -7,7 +9,7 @@ from itertools import cycle
 import secrets
 from time import sleep
 
-class Game:
+class Match:
     def __init__(self,
                  number_of_players_human = 1,
                  number_of_players_computer=2,
@@ -106,7 +108,7 @@ class Game:
 
         self.players_iterator = cycle(self.list_players)
 
-        #self.show_table_dice_hidden()
+        self.show_table_dice_hidden()
 
         # TODO: o jogador que começa deve ser aquele que fez o penúltimo palpite
         # embaralha a lista de jogadores
@@ -177,3 +179,5 @@ class Game:
                 return("right")
             else:
                 return("wrong")
+
+
