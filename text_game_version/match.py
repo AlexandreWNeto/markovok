@@ -1,26 +1,15 @@
 """
 Esta classe define uma rodada do jogo
+
+
 """
 
 from player import Player
 from itertools import cycle
 import secrets
-import pygame
-from pygame.locals import (
-    K_UP,
-    K_DOWN,
-    K_LEFT,
-    K_RIGHT,
-    K_ESCAPE,
-    KEYDOWN,
-    QUIT,
-)
-
-
-
 from time import sleep
 
-class Game:
+class Match:
     def __init__(self,
                  number_of_players_human = 1,
                  number_of_players_computer=2,
@@ -43,25 +32,27 @@ class Game:
         for i in range(self.number_of_players_human):
             self.dict_players["user" + str(i + 1)] = Player(name="user" + str(i + 1),
                                                             decision_method=self.decision_method,
-                                                            max_number_of_dice=self.max_number_of_dice,
-                                                            type="user",
-                                                            x = 0,
-                                                            y = 0)
-
+                                                            max_number_of_dice=self.max_number_of_dice,type="user")
         for i in range(self.number_of_players_computer):
             self.dict_players["pc" + str(i + 1)] = Player(name="pc" + str(i + 1),
                                                           decision_method=self.decision_method,
-                                                          max_number_of_dice=self.max_number_of_dice,
-                                                          type="pc",
-                                                          x = 0,
-                                                          y = 0)
-
+                                                          max_number_of_dice=self.max_number_of_dice,type="pc")
         self.list_players=list(self.dict_players.values())
 
+    def start_match(self):
+        self.create_players()
+        while(True):
+            self.start_round()
+            #option = input("Deseja continuar? (S/N)")
+            #if (option == "N")or(option=="n"):
+            if(self.number_of_remaining_active_players == 1): # se apenas um jogador tiver sobrado
+                winning_player = self.list_players[0]
+                print(f"O jogador vencedor é {winning_player.get_player_name()}!")
+                break
 
-    def handle_match(self):
-        self.handle_round()
+        print("Partida encerrada.")
 
+        return()
 
     def remove_player_from_list(self,player):
         self.list_players.remove(player)
@@ -108,11 +99,7 @@ class Game:
 
         return(guess)
 
-    def shuffle_dice(self):
-        for player in self.list_players:
-            player.roll_dice()
-
-    def handle_round(self):
+    def start_round(self):
         guess = [0,0]
 
         # cada jogador joga os dados
@@ -133,7 +120,6 @@ class Game:
 
             if (player.type == "user"): # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
                 player.summary()
-                pass
 
             while(player.number_of_dice_remaining == 0): # se um jogador tiver perdido todos os dados
                 player = next(self.players_iterator) # passa para o próximo jogador
@@ -193,3 +179,5 @@ class Game:
                 return("right")
             else:
                 return("wrong")
+
+

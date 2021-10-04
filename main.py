@@ -1,45 +1,48 @@
 """
 Arquivo principal do jogo
 """
-from game import Game
-import numpy as np
 import pygame
-from pygame.locals import (
-    K_UP,
-    K_DOWN,
-    K_LEFT,
-    K_RIGHT,
-    K_ESCAPE,
-    KEYDOWN,
-    QUIT,
-)
+from game import Game
+from GameWindow import GameWindow
+import numpy as np
 
-from background import Background
+import os
+
+
+FPS = 60
+
+game_window = GameWindow()
+game_window.set_screen()
+
 
 def main():
 
-    pygame.init()
-    background = Background()
-    background.set_screen()
-    run_bool = True
-    while run_bool:
-        for event in pygame.event.get():
-            if event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    run_bool = False
-            elif event.type == QUIT:
-                run_bool = False
+    game = Game(number_of_players_computer=1, max_number_of_dice=5, number_of_players_human=1)
+    game.create_players()
+    game.shuffle_dice()
+    game_window.set_player_coordinates(game.list_players)
 
-        background.draw()
+    clock = pygame.time.Clock()
+    run = True
+    while run:
+        clock.tick(FPS)
+
+        for event in pygame.event.get(): # event QUEUE
+            if event.type == pygame.QUIT: # "x" button
+                run = False
+                pygame.quit()
+
+        game_window.draw_window(game)
+
+        if (game.number_of_remaining_active_players == 1):  # se apenas um jogador tiver sobrado
+            winning_player = game.list_players[0]
+            winner_text = "O jogador vencedor é " + winning_player.get_player_name()
+            print(f"O jogador vencedor é {winning_player.get_player_name()}!")
+            game_window.draw_winner(winner_text) # SOMEONE WON
+            break
 
 
 
-    pygame.quit()
-
-
-    game = Game(number_of_players_computer=3,max_number_of_dice=5,number_of_players_human=0)
-    game.start_match()
-    evaluate_game(game)
 
 
 def evaluate_game(game):

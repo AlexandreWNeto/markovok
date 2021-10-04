@@ -15,7 +15,7 @@ from pygame.locals import (
     KEYDOWN,
     QUIT,
 )
-
+from background import Background
 
 
 from time import sleep
@@ -43,25 +43,28 @@ class Game:
         for i in range(self.number_of_players_human):
             self.dict_players["user" + str(i + 1)] = Player(name="user" + str(i + 1),
                                                             decision_method=self.decision_method,
-                                                            max_number_of_dice=self.max_number_of_dice,
-                                                            type="user",
-                                                            x = 0,
-                                                            y = 0)
-
+                                                            max_number_of_dice=self.max_number_of_dice,type="user")
         for i in range(self.number_of_players_computer):
             self.dict_players["pc" + str(i + 1)] = Player(name="pc" + str(i + 1),
                                                           decision_method=self.decision_method,
-                                                          max_number_of_dice=self.max_number_of_dice,
-                                                          type="pc",
-                                                          x = 0,
-                                                          y = 0)
-
+                                                          max_number_of_dice=self.max_number_of_dice,type="pc")
         self.list_players=list(self.dict_players.values())
 
+    def start_match(self):
 
-    def handle_match(self):
-        self.handle_round()
+        self.create_players()
+        while(True):
+            self.start_round()
+            #option = input("Deseja continuar? (S/N)")
+            #if (option == "N")or(option=="n"):
+            if(self.number_of_remaining_active_players == 1): # se apenas um jogador tiver sobrado
+                winning_player = self.list_players[0]
+                print(f"O jogador vencedor é {winning_player.get_player_name()}!")
+                break
 
+        print("Partida encerrada.")
+
+        return()
 
     def remove_player_from_list(self,player):
         self.list_players.remove(player)
@@ -108,11 +111,7 @@ class Game:
 
         return(guess)
 
-    def shuffle_dice(self):
-        for player in self.list_players:
-            player.roll_dice()
-
-    def handle_round(self):
+    def start_round(self):
         guess = [0,0]
 
         # cada jogador joga os dados
@@ -130,7 +129,19 @@ class Game:
 
         while(True):
             player = next(self.players_iterator) # é a vez de jogar do próximo jogador
-
+            run_bool = True
+            '''while run_bool:
+                for event in pygame.event.get():
+                    if event.type == KEYDOWN:
+                        if event.key == K_ESCAPE:
+                            run_bool = False # TODO: clean variables before quitting
+                            return()
+                        if event.key == K_UP: # só continua se o usuário apertar para cima
+                            run_bool = False
+                    elif event.type == QUIT:
+                        run_bool = False # TODO: clean variables before quitting
+                        return()
+'''
             if (player.type == "user"): # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
                 player.summary()
                 pass

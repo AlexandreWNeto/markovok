@@ -7,17 +7,18 @@ from dice import Dice
 from math import factorial
 import pygame
 
-class Player:
-    def __init__(self,name = "Nome",decision_method = "Bernoulli", max_number_of_dice=5, type = "pc", x = 0, y = 0):
+class Player(pygame.sprite.Sprite):
+    def __init__(self,name = "Nome",decision_method = "Bernoulli", max_number_of_dice=5, type = "pc"):
+        super(Player,self).__init__()
         self.__name = name
         self.__max_number_of_dice = max_number_of_dice
         self.__decision_method = decision_method
         self.__set_of_dice = Dice(self.__max_number_of_dice)
         self.number_of_dice_remaining = len(self.__set_of_dice.dice_list)
         self.type = type
-        self.x = x
-        self.y = y
-
+        self.surf = pygame.Surface((75,25))
+        self.surf.fill((255,255,255))
+        self.rect = self.surf.get_rect()
 
 
     def roll_dice(self):
@@ -42,9 +43,6 @@ class Player:
 
     def get_player_name(self):
         return(self.__name)
-
-    def get_set_of_dice(self):
-        return(self.__set_of_dice)
 
     def count_dice_in_table(self,players_in_table=[]):
         if players_in_table == []:
