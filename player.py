@@ -8,16 +8,14 @@ from math import factorial
 import pygame
 
 class Player:
-    def __init__(self,name = "Nome",decision_method = "Bernoulli", max_number_of_dice=5, type = "pc", x = 0, y = 0):
+    def __init__(self,name = "Nome",decision_method = "Bernoulli", max_number_of_dice=5, type = "pc", vertices = ((0,0),(0,0))):
         self.__name = name
         self.__max_number_of_dice = max_number_of_dice
         self.__decision_method = decision_method
         self.__set_of_dice = Dice(self.__max_number_of_dice)
         self.number_of_dice_remaining = len(self.__set_of_dice.dice_list)
         self.type = type
-        self.x = x
-        self.y = y
-
+        self.vertices = vertices
 
 
     def roll_dice(self):

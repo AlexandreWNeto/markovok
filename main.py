@@ -10,14 +10,17 @@ import os
 
 
 FPS = 60
+MAX_NUM_OF_DICE = 6
 
-game_window = GameWindow()
+
+game_window = GameWindow(MAX_NUM_OF_DICE)
 game_window.set_screen()
+
 
 
 def main():
 
-    game = Game(number_of_players_computer=1, max_number_of_dice=5, number_of_players_human=1)
+    game = Game(number_of_players_computer=4, max_number_of_dice= MAX_NUM_OF_DICE, number_of_players_human=1)
     game.create_players()
     game.shuffle_dice()
     game_window.set_player_coordinates(game.list_players)

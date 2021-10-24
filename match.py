@@ -1,27 +1,15 @@
 """
 Esta classe define uma rodada do jogo
+
+
 """
 
 from player import Player
 from itertools import cycle
 import secrets
-from collections import deque
-import pygame
-from pygame.locals import (
-    K_UP,
-    K_DOWN,
-    K_LEFT,
-    K_RIGHT,
-    K_ESCAPE,
-    KEYDOWN,
-    QUIT,
-)
-
-
-
 from time import sleep
 
-class Game:
+class Match:
     def __init__(self,
                  number_of_players_human = 1,
                  number_of_players_computer=2,
@@ -39,29 +27,32 @@ class Game:
         self.number_of_remaining_active_players = self.number_of_players_human + self.number_of_players_computer
         self.n_right_decisions = 0
         self.n_wrong_decisions = 0
-        self.guess_queue = deque([[0, 0], [0, 0]])
 
     def create_players(self):
         for i in range(self.number_of_players_human):
             self.dict_players["user" + str(i + 1)] = Player(name="user" + str(i + 1),
                                                             decision_method=self.decision_method,
-                                                            max_number_of_dice=self.max_number_of_dice,
-                                                            type="user",
-                                                            vertices=((0, 0), (0, 0)))
-
+                                                            max_number_of_dice=self.max_number_of_dice,type="user")
         for i in range(self.number_of_players_computer):
             self.dict_players["pc" + str(i + 1)] = Player(name="pc" + str(i + 1),
                                                           decision_method=self.decision_method,
-                                                          max_number_of_dice=self.max_number_of_dice,
-                                                          type="pc",
-                                                          vertices=((0, 0), (0, 0)))
-
+                                                          max_number_of_dice=self.max_number_of_dice,type="pc")
         self.list_players=list(self.dict_players.values())
 
+    def start_match(self):
+        self.create_players()
+        while(True):
+            self.start_round()
+            #option = input("Deseja continuar? (S/N)")
+            #if (option == "N")or(option=="n"):
+            if(self.number_of_remaining_active_players == 1): # se apenas um jogador tiver sobrado
+                winning_player = self.list_players[0]
+                print(f"O jogador vencedor é {winning_player.get_player_name()}!")
+                break
 
-    def handle_match(self):
-        self.handle_round()
+        print("Partida encerrada.")
 
+        return()
 
     def remove_player_from_list(self,player):
         self.list_players.remove(player)
@@ -97,24 +88,18 @@ class Game:
                 "\t-1 (caso ache que o palpite anterior esteja incorreto)\n").strip().split()))
             if(guess[0]==0): # palpite exato
                 print(f"{player.get_player_name()}:\tPalpite exato!")
-                guess = [-1, 0]
+                guess = [-1,0]
             elif(guess[0]==-1): # palpite incorreto
                 print(f"{player.get_player_name()}:\tPalpite incorreto!")
                 guess = [-1, -1]
             else:
                 print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
-
         else:  # if the player is a computer
             guess = player.make_guess(previous_guess, self.list_players)
 
-
         return(guess)
 
-    def shuffle_dice(self):
-        for player in self.list_players:
-            player.roll_dice()
-
-    def handle_round(self):
+    def start_round(self):
         guess = [0,0]
 
         # cada jogador joga os dados
@@ -135,22 +120,13 @@ class Game:
 
             if (player.type == "user"): # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
                 player.summary()
-                pass
 
             while(player.number_of_dice_remaining == 0): # se um jogador tiver perdido todos os dados
                 player = next(self.players_iterator) # passa para o próximo jogador
 
-            # moving the guess queue
-            self.guess_queue.popleft() # remove the oldest guess from the guess queue
-                                       # (there should only be two guesses at the guess queue
-                                       # at any given time)
+            previous_guess = guess
 
-            previous_guess = self.guess_queue[0]
-
-            guess = self.get_player_guess(player,previous_guess) # determine the new guess
-
-            self.guess_queue.append(guess) # add the new guess to the guess queue
-
+            guess = self.get_player_guess(player,previous_guess)
 
             if (guess[0] <= 0): # se alguém tiver julgado o palpite anterior incorreto/exato
                 # a rodada acabará
@@ -203,3 +179,5 @@ class Game:
                 return("right")
             else:
                 return("wrong")
+
+
