@@ -1,6 +1,7 @@
 """
 Arquivo principal do jogo
 """
+
 import pygame
 from game import Game
 from GameWindow import GameWindow
@@ -8,19 +9,27 @@ import numpy as np
 
 import os
 
-
 FPS = 60
-MAX_NUM_OF_DICE = 6
-
+MAX_NUM_OF_DICE = 3
 
 game_window = GameWindow(MAX_NUM_OF_DICE)
 game_window.set_screen()
 
+width = game_window.WIN.get_width()
+height = game_window.WIN.get_height()
 
+# USER EVENTS
+START_MATCH = pygame.USEREVENT + 1
+END_MATCH = pygame.USEREVENT + 2
+START_ROUND = pygame.USEREVENT + 3
+END_ROUND = pygame.USEREVENT + 4
+DOUBT = pygame.USEREVENT + 5
+EXACT_GUESS = pygame.USEREVENT + 6
+GUESS = pygame.USEREVENT + 7
+ACTION = pygame.USEREVENT + 8
 
 def main():
-
-    game = Game(number_of_players_computer=4, max_number_of_dice= MAX_NUM_OF_DICE, number_of_players_human=1)
+    game = Game(number_of_players_computer=5, max_number_of_dice= MAX_NUM_OF_DICE, number_of_players_human=1)
     game.create_players()
     game.shuffle_dice()
     game_window.set_player_coordinates(game.list_players)
@@ -34,6 +43,35 @@ def main():
             if event.type == pygame.QUIT: # "x" button
                 run = False
                 pygame.quit()
+            elif event.type == START_MATCH and game.has_started is False:
+                game.has_started = True
+                game.start_new_round()
+
+            elif event.type == END_ROUND:
+                # erasing guesses from screen
+                pygame.time.delay(2000)
+                game.clear_guesses()
+
+
+            elif event.type == ACTION and game.has_started is True:
+                game.handle_round()
+                if game.has_started == False: #the round has finished
+                    pygame.event.post(pygame.event.Event(END_ROUND))
+
+
+            elif event.type == ACTION and game.has_started is False:
+                pygame.event.post(pygame.event.Event(START_MATCH))
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for button in game_window.match_menu.buttons:
+                    button_event = button.handle_event(event)
+                    if button_event is not None:
+                        pygame.event.post(pygame.event.Event(button_event))
+
+
+
+
+
 
         game_window.draw_window(game)
 
@@ -43,9 +81,6 @@ def main():
             print(f"O jogador vencedor é {winning_player.get_player_name()}!")
             game_window.draw_winner(winner_text) # SOMEONE WON
             break
-
-
-
 
 
 def evaluate_game(game):

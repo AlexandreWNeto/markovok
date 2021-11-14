@@ -28,6 +28,7 @@ class Game:
                  decision_method = "Bernoulli",
                  max_number_of_dice=5,
                  number_of_rounds = 1):
+        self.has_started = False
         self.number_of_players_human = number_of_players_human
         self.number_of_players_computer = number_of_players_computer
         self.decision_method = decision_method
@@ -35,7 +36,7 @@ class Game:
         self.number_of_rounds = number_of_rounds
         self.dict_players={}
         self.list_players=[]
-        self.iterator_players = cycle(self.list_players)
+        self.players_iterator = cycle(self.list_players)
         self.number_of_remaining_active_players = self.number_of_players_human + self.number_of_players_computer
         self.n_right_decisions = 0
         self.n_wrong_decisions = 0
@@ -58,9 +59,6 @@ class Game:
 
         self.list_players=list(self.dict_players.values())
 
-
-    def handle_match(self):
-        self.handle_round()
 
 
     def remove_player_from_list(self,player):
@@ -103,6 +101,7 @@ class Game:
                 guess = [-1, -1]
             else:
                 print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
+            player.guess = " ".join(str(_) for _ in guess) # registra o palpite
 
         else:  # if the player is a computer
             guess = player.make_guess(previous_guess, self.list_players)
@@ -114,12 +113,9 @@ class Game:
         for player in self.list_players:
             player.roll_dice()
 
-    def handle_round(self):
-        guess = [0,0]
-
+    def start_new_round(self):
         # cada jogador joga os dados
-        for player in self.list_players:
-            player.roll_dice()
+        self.shuffle_dice()
 
         self.players_iterator = cycle(self.list_players)
 
@@ -130,61 +126,62 @@ class Game:
         for _ in range(secrets.choice(list(range(len(self.list_players))))):
             next(self.players_iterator)
 
-        while(True):
-            player = next(self.players_iterator) # é a vez de jogar do próximo jogador
+    def handle_round(self):
 
-            if (player.type == "user"): # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
-                player.summary()
-                pass
+        player = next(self.players_iterator) # é a vez de jogar do próximo jogador
 
-            while(player.number_of_dice_remaining == 0): # se um jogador tiver perdido todos os dados
-                player = next(self.players_iterator) # passa para o próximo jogador
+        if (player.type == "user"): # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
+            player.summary()
+            pass
 
-            # moving the guess queue
-            self.guess_queue.popleft() # remove the oldest guess from the guess queue
-                                       # (there should only be two guesses at the guess queue
-                                       # at any given time)
+        while(player.number_of_dice_remaining == 0): # se um jogador tiver perdido todos os dados
+            player = next(self.players_iterator) # passa para o próximo jogador
 
-            previous_guess = self.guess_queue[0]
+        # moving the guess queue
+        self.guess_queue.popleft() # remove the oldest guess from the guess queue
+                                   # (there should only be two guesses at the guess queue
+                                   # at any given time)
 
-            guess = self.get_player_guess(player,previous_guess) # determine the new guess
+        previous_guess = self.guess_queue[0]
 
-            self.guess_queue.append(guess) # add the new guess to the guess queue
+        guess = self.get_player_guess(player,previous_guess) # determine the new guess
+
+        self.guess_queue.append(guess) # add the new guess to the guess queue
 
 
-            if (guess[0] <= 0): # se alguém tiver julgado o palpite anterior incorreto/exato
-                # a rodada acabará
-                self.reveal_table() # revela os dados da mesa
-                #sleep(1)
-                if(guess[1]==0): # se alguém tiver julgado o palpite anterior exato
-                    if(self.evaluate_guess(guess,previous_guess) == "wrong"):
-                        player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
-                        print("Julgamento incorreto.\n")
-                    else:
-                        for _ in range(len(self.list_players) - 1):
-                            player = next(self.players_iterator)
-                        player.remove_dice(1)  # remove um dado de todos os outros jogadores
-                        print("Julgamento correto.\n")
-
-                elif(self.evaluate_guess(guess,previous_guess) == "wrong"): # se alguém tiver julgado o palpite anterior exato
-                    player.remove_dice(1) # remove um dado do jogador que fez o julgamento errado
+        if (guess[0] <= 0): # se alguém tiver julgado o palpite anterior incorreto/exato
+            # a rodada acabará
+            self.reveal_table() # revela os dados da mesa
+            #sleep(1)
+            if(guess[1]==0): # se alguém tiver julgado o palpite anterior exato
+                if(self.evaluate_guess(guess,previous_guess) == "wrong"):
+                    player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                     print("Julgamento incorreto.\n")
-                    self.n_wrong_decisions = self.n_wrong_decisions + 1
                 else:
-                    for _ in range(len(self.list_players)-1):
+                    for _ in range(len(self.list_players) - 1):
                         player = next(self.players_iterator)
-                    player.remove_dice(1) # remove um dado do jogador que fez o palpite anterior
+                    player.remove_dice(1)  # remove um dado de todos os outros jogadores
                     print("Julgamento correto.\n")
-                    self.n_right_decisions = self.n_right_decisions + 1
-                #sleep(1)
-                print("Fim da rodada.")
-                print("--------------------\n")
-                #sleep(1.5)
+
+            elif(self.evaluate_guess(guess,previous_guess) == "wrong"): # se alguém tiver julgado o palpite anterior exato
+                player.remove_dice(1) # remove um dado do jogador que fez o julgamento errado
+                print("Julgamento incorreto.\n")
+                self.n_wrong_decisions = self.n_wrong_decisions + 1
+            else:
+                for _ in range(len(self.list_players)-1):
+                    player = next(self.players_iterator)
+                player.remove_dice(1) # remove um dado do jogador que fez o palpite anterior
+                print("Julgamento correto.\n")
+                self.n_right_decisions = self.n_right_decisions + 1
+            #sleep(1)
+            print("Fim da rodada.")
+            print("--------------------\n")
+            #sleep(1.5)
 
 
-                if(player.number_of_dice_remaining == 0):
-                    self.remove_player_from_list(player)
-                break
+            if(player.number_of_dice_remaining == 0):
+                self.remove_player_from_list(player)
+            self.has_started = False
             #sleep(1)
         return()
 
@@ -203,3 +200,7 @@ class Game:
                 return("right")
             else:
                 return("wrong")
+
+    def clear_guesses(self):
+        for player in self.list_players:
+            player.guess = " "

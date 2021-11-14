@@ -9,29 +9,30 @@ import pygame
 
 class Player:
     def __init__(self,name = "Nome",decision_method = "Bernoulli", max_number_of_dice=5, type = "pc", vertices = ((0,0),(0,0))):
-        self.__name = name
+        self.name = name
         self.__max_number_of_dice = max_number_of_dice
         self.__decision_method = decision_method
         self.__set_of_dice = Dice(self.__max_number_of_dice)
         self.number_of_dice_remaining = len(self.__set_of_dice.dice_list)
         self.type = type
         self.vertices = vertices
+        self.guess = ""
 
 
     def roll_dice(self):
         self.__set_of_dice.roll()
 
     def reveal_dice(self):
-        print(self.__name + ":\t", self.__set_of_dice.dice_list)
+        print(self.name + ":\t", self.__set_of_dice.dice_list)
 
     def show_dice_hide_figures(self):
         list_hidden_dice = ["\u25A2" for i in range(self.number_of_dice_remaining)]
-        print(self.__name + ":\t", list_hidden_dice)
+        print(self.name + ":\t", list_hidden_dice)
 
 
 
     def summary(self):
-        print(self.__name + ":\t", self.__set_of_dice.dice_list)
+        print(self.name + ":\t", self.__set_of_dice.dice_list)
 
     def remove_dice(self,number_of_dice_to_remove=1):
         for _ in range(number_of_dice_to_remove):
@@ -39,7 +40,7 @@ class Player:
         self.number_of_dice_remaining = len(self.__set_of_dice.dice_list) # update the number of dice after removing a dice
 
     def get_player_name(self):
-        return(self.__name)
+        return(self.name)
 
     def get_set_of_dice(self):
         return(self.__set_of_dice)
@@ -159,7 +160,11 @@ class Player:
 
         if self.__decision_method == "Bernoulli":
             new_guess = self.make_bernoulli_guess(previous_guess,players_in_table)
+            self.guess = " ".join(str(_) for _ in new_guess)
             return(new_guess)
+
+
+
         return()
 
 
@@ -181,7 +186,7 @@ class Player:
                   f"\tProbabilidade de haver mais de {amount} dado(s) "
                   f"mostrando o número {figure}:"
                   f"\t{p_initial_guess_most_figures_in_hand}\n")"""
-            print(f"{self.__name}:\tPalpite: {amount} dados mostrando o número {figure}")
+            print(f"{self.name}:\tPalpite: {amount} dados mostrando o número {figure}")
             return (initial_guess)
 
         # calcula as probabilidades do palpite anterior estar correto ou incorreto
@@ -221,10 +226,10 @@ class Player:
         # print(best_guess)
 
         if (best_guess == [-1, 0]):  # a maior probabilidade de sucesso está em dizer que o palpite anterior estava exatamente correto
-            print(f"{self.__name}:\tPalpite exato!")
+            print(f"{self.name}:\tPalpite exato!")
             return (best_guess)
         if (best_guess == [-1, -1]):
-            print(f"{self.__name}:\tPalpite incorreto!")
+            print(f"{self.name}:\tPalpite incorreto!")
             return (best_guess)
 
         guess_amount = best_guess[0]
@@ -234,5 +239,5 @@ class Player:
               f"\tProbabilidade de haver mais de (ou exatamente) {guess_amount} dado(s) "
               f"mostrando o número {guess_figure}:"
               f"\t{p_best_guess}\n")"""
-        print(f"{self.__name}:\tPalpite: {guess_amount} dados mostrando o número {guess_figure}")
+        print(f"{self.name}:\tPalpite: {guess_amount} dados mostrando o número {guess_figure}")
         return (best_guess)

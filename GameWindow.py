@@ -13,6 +13,10 @@ from pygame import Rect
 from pygame import time
 from pygame import font
 from pygame import transform
+from pygame import draw
+from pygame import MOUSEBUTTONDOWN
+from pygame import USEREVENT
+from pygame import event
 
 
 from math import sin
@@ -32,8 +36,12 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
+ORANGE = (255, 165, 0)
+GREEN = (0, 255, 0)
 
 WINNER_FONT = font.SysFont("verdana",100) # font, size
+PLAYER_FONT = font.SysFont("verdana",20) # font, size
+BUTTON_FONT = font.SysFont("verdana",20) # font, size
 
 BACKGROUND_IMAGE = transform.scale(
     image.load(os.path.join("imagens","fundo.jpg")),(WIDTH, HEIGHT))
@@ -59,6 +67,16 @@ DICE_HIDDEN_IMAGE = transform.scale(
 
 images_dir = os.path.join("imagens")
 
+# USER EVENTS
+START_MATCH = USEREVENT + 1
+END_MATCH = USEREVENT + 2
+START_ROUND = USEREVENT + 3
+END_ROUND = USEREVENT + 4
+DOUBT = USEREVENT + 5
+EXACT_GUESS = USEREVENT + 6
+GUESS = USEREVENT + 7
+ACTION = USEREVENT + 8
+
 class GameWindow:
 
     def __init__(self, max_num_of_dice = 6):
@@ -67,8 +85,7 @@ class GameWindow:
         self.caption = "Markovok"
         self.WIN = None
         self.max_num_of_dice = max_num_of_dice
-
-
+        self.match_menu = PlayerActionMenu()
 
     def set_screen(self):
         # create display
@@ -79,15 +96,9 @@ class GameWindow:
 
     def draw_window(self, game):
         self.WIN.blit(BACKGROUND_IMAGE,(0,0))
-        self.draw_players(game.list_players, mode = "HIDE")
+        self.draw_players(game.list_players, mode="HIDE")
+        self.match_menu.draw_action_menu(self.WIN, game.list_players)
         display.update()
-
-    def draw_winner(self, text):
-        draw_text = WINNER_FONT.render(text, 1, WHITE)
-        self.WIN.blit(draw_text, (self.SCREEN_WIDTH / 2 - draw_text.get_width() / 2, self.SCREEN_HEIGHT / 2 - draw_text.get_height() / 2))
-
-        display.update()  # updates the screen before the pause
-        time.delay(5000)  # pauses the game
 
     def draw_players(self, players, mode = "HIDE"):
         if mode == "REVEAL":
@@ -102,6 +113,7 @@ class GameWindow:
         else:
             print("Error in function draw_players. Invalid draw mode.")
 
+
     def draw_dice(self, player, mode = "REVEAL"):
 
         dice_list = player.get_set_of_dice().dice_list
@@ -111,7 +123,6 @@ class GameWindow:
         x_end = player.vertices[1][0]
         y_end = player.vertices[1][1]
 
-
         if x_end != x_start:
             angle = -atan((y_end - y_start) / (x_end - x_start)) * 180 / pi
         else:
@@ -120,7 +131,7 @@ class GameWindow:
         if y_end == y_start:
             angle = 180 if x_end > x_start else 0
 
-        offset_x = (x_end - x_start) / (self.max_num_of_dice + 1) #- (DICE_WIDTH / 2) * sin(angle * pi / 180)
+        offset_x = (x_end - x_start) / (self.max_num_of_dice + 1)   # - (DICE_WIDTH / 2) * sin(angle * pi / 180)
         offset_y = (y_end - y_start) / (self.max_num_of_dice + 1) - (DICE_HEIGHT / 2) * cos(angle * pi / 180)
 
         delta_x = (x_end - x_start) / (self.max_num_of_dice + 1)
@@ -129,39 +140,44 @@ class GameWindow:
         if mode == "REVEAL":
             for dice in dice_list:
                 if dice == 1:
-                    self.WIN.blit(transform.rotate(DICE_1_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                    self.WIN.blit(transform.rotate(DICE_1_IMAGE.convert_alpha(), angle),
+                                  (x_start + offset_x, y_start + offset_y))
                 if dice == 2:
-                    self.WIN.blit(transform.rotate(DICE_2_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                    self.WIN.blit(transform.rotate(DICE_2_IMAGE.convert_alpha(), angle),
+                                  (x_start + offset_x, y_start + offset_y))
                 if dice == 3:
-                    self.WIN.blit(transform.rotate(DICE_3_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                    self.WIN.blit(transform.rotate(DICE_3_IMAGE.convert_alpha(), angle),
+                                  (x_start + offset_x, y_start + offset_y))
                 if dice == 4:
-                    self.WIN.blit(transform.rotate(DICE_4_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                    self.WIN.blit(transform.rotate(DICE_4_IMAGE.convert_alpha(), angle),
+                                  (x_start + offset_x, y_start + offset_y))
                 if dice == 5:
-                    self.WIN.blit(transform.rotate(DICE_5_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                    self.WIN.blit(transform.rotate(DICE_5_IMAGE.convert_alpha(), angle),
+                                  (x_start + offset_x, y_start + offset_y))
                 if dice == 6:
-                    self.WIN.blit(transform.rotate(DICE_6_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                    self.WIN.blit(transform.rotate(DICE_6_IMAGE.convert_alpha(), angle),
+                                  (x_start + offset_x, y_start + offset_y))
 
                 offset_x += delta_x
                 offset_y += delta_y
         else:
             for dice in dice_list:
-                self.WIN.blit(transform.rotate(DICE_HIDDEN_IMAGE.convert_alpha(), angle), (x_start + offset_x, y_start + offset_y))
+                self.WIN.blit(transform.rotate(DICE_HIDDEN_IMAGE.convert_alpha(), angle),
+                              (x_start + offset_x, y_start + offset_y))
                 offset_x += delta_x
                 offset_y += delta_y
 
-
     def set_player_coordinates(self, list_of_players):
         num_players = len(list_of_players)
-        center_x = WIDTH // 2
+        center_x = WIDTH // 3
         center_y = HEIGHT // 2
         radius = WIDTH // 3
 
         if num_players == 2: # place the dice in two parallel lines
             delta = 0
-            for player in list_of_players:
-                player.vertices = ((WIDTH // 5, HEIGHT // 4 + delta), (4 * WIDTH // 5, HEIGHT // 4 + delta))
+            for player in reversed(list_of_players):
+                player.vertices = ((1 * WIDTH // 10, HEIGHT // 4 + delta), (6 * WIDTH // 10, HEIGHT // 4 + delta))
                 delta += 2 * HEIGHT // 4
-
 
         else:
             # coordinates of the vertices of the polygon on which the dice will be placed
@@ -174,5 +190,95 @@ class GameWindow:
             for player in list_of_players:
                 player.vertices = (vertices[i], vertices[i+1 if i != num_players - 1 else 0])
                 i += 1
+
+    def draw_winner(self, text):
+        draw_text = WINNER_FONT.render(text, True, WHITE)
+        self.WIN.blit(draw_text, (self.SCREEN_WIDTH / 2 - draw_text.get_width() / 2, self.SCREEN_HEIGHT / 2 - draw_text.get_height() / 2))
+
+        display.update()  # updates the screen before the pause
+        time.delay(5000)  # pauses the game
+
+
+class PlayerActionMenu:
+    def __init__(self):
+        self.buttons = []
+        self.x = 7.5 * WIDTH / 10
+        self.y = HEIGHT / 8
+
+    def draw_action_menu(self, window, player_list, erase_guesses = False):
+        offset = 0
+        for player in player_list:
+            if erase_guesses is True:
+                draw_text = PLAYER_FONT.render("      ", True, WHITE)
+                window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + offset))
+            else:
+                draw_text = PLAYER_FONT.render(player.name + "  " + player.guess, True, WHITE)
+                window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + offset))
+            offset = offset + draw_text.get_height() * 2
+
+        # create and draw buttons
+        # MAKE GUESS button
+        button_make_guess = Button(x=self.x, y= self.y + offset, text = "Make guess", font = BUTTON_FONT, colour=WHITE)
+        button_make_guess.draw_button(window, border_colour = ORANGE, border_thickness = 4)
+
+        # CORRECT button
+        offset = offset + button_make_guess.height * 2
+        button_exact = Button(x=self.x, y= self.y + offset, text="That's correct!", font=BUTTON_FONT, colour=WHITE)
+        button_exact.draw_button(window, border_colour = ORANGE, border_thickness = 4)
+
+        # DOUBT button
+        offset = offset + button_exact.height * 2
+        button_doubt = Button(x=self.x, y= self.y + offset, text="Doubt it!", font=BUTTON_FONT, colour=WHITE)
+        button_doubt.draw_button(window, border_colour = ORANGE, border_thickness = 4)
+
+        # ACTION button (Debug)
+        offset = offset + button_doubt.height * 2
+        button_action = Button(x=self.x, y= self.y + offset, text="ACTION!", font=BUTTON_FONT, colour=WHITE)
+        button_action.draw_button(window, border_colour = GREEN, border_thickness = 4)
+
+        self.buttons = [button_make_guess, button_exact, button_doubt, button_action]
+
+class Button:
+    def __init__(self, x, y, text = "", font = BUTTON_FONT, colour=WHITE):
+        self.x = x
+        self.y = y
+        self.text = text
+        self.colour = colour
+        self.font = font
+        self.width = None
+        self.height = None
+
+
+    def draw_button(self, win, border_colour, border_thickness = 2):
+        draw_text = self.font.render(self.text, True, BLACK)
+
+        self.width = draw_text.get_width() + 10
+        self.height = draw_text.get_height() + 10
+
+        if border_colour: # draw a thick border
+            draw.rect(win, border_colour, (self.x-border_thickness, self.y-border_thickness, self.width+border_thickness*2, self.height+border_thickness*2),0)
+
+        draw.rect(win, self.colour, (self.x, self.y, self.width, self.height),0)
+
+        if self.text != "":
+            win.blit(draw_text, (self.x + (self.width/2 - draw_text.get_width()/2), self.y + (self.height/2 - draw_text.get_height()/2)))
+
+    def isMouseOverButton(self, pos):
+        if pos[0] > self.x and pos[0] < self.x + self.width:
+            if pos[1] > self.y and pos[1] < self.y + self.height:
+                return(True)
+        return(False)
+
+
+    def handle_event(self, event):
+        if event.type == MOUSEBUTTONDOWN:
+            if self.isMouseOverButton(event.pos):
+                return(ACTION)
+        return(None)
+
+
+
+
+
 
 
