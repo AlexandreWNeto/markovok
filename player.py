@@ -31,7 +31,7 @@ class Player:
 
 
 
-    def summary(self):
+    def print_summary(self):
         print(self.name + ":\t", self.__set_of_dice.dice_list)
 
     def remove_dice(self,number_of_dice_to_remove=1):

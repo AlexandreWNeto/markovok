@@ -26,8 +26,6 @@ from math import pi
 from math import sqrt
 
 
-
-
 font.init()
 
 WIDTH, HEIGHT = 900, 650
@@ -42,6 +40,7 @@ GREEN = (0, 255, 0)
 WINNER_FONT = font.SysFont("verdana",100) # font, size
 PLAYER_FONT = font.SysFont("verdana",20) # font, size
 BUTTON_FONT = font.SysFont("verdana",20) # font, size
+SELECTION_FONT = font.SysFont("verdana",20) # font, size
 
 BACKGROUND_IMAGE = transform.scale(
     image.load(os.path.join("imagens","fundo.jpg")),(WIDTH, HEIGHT))
@@ -203,7 +202,9 @@ class PlayerActionMenu:
     def __init__(self):
         self.buttons = []
         self.x = 7.5 * WIDTH / 10
-        self.y = HEIGHT / 8
+        self.y = HEIGHT / 16
+        self.guess_amount = "1"
+        self.guess_figure = "6"
 
     def draw_action_menu(self, window, player_list, erase_guesses = False):
         offset = 0
@@ -215,6 +216,36 @@ class PlayerActionMenu:
                 draw_text = PLAYER_FONT.render(player.name + "  " + player.guess, True, WHITE)
                 window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + offset))
             offset = offset + draw_text.get_height() * 2
+
+        offset = offset - 20
+
+        h_offset = 0
+
+        button_plus_guess_number = Button(x=self.x, y= self.y + offset, text = "+", font = SELECTION_FONT, colour = BLACK)
+        button_plus_guess_number.draw_button(window, border_colour = ORANGE, border_thickness = 1, text_colour=WHITE)
+        draw_text = SELECTION_FONT.render(self.guess_amount, True, WHITE)
+        h_offset = h_offset + 2*draw_text.get_width()
+        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
+        h_offset = h_offset + 2*draw_text.get_width()
+        button_minus_guess_number = Button(x=self.x + h_offset, y= self.y + offset, text = "-", font = SELECTION_FONT, colour = BLACK)
+        button_minus_guess_number.draw_button(window, border_colour = ORANGE, border_thickness = 1, text_colour=WHITE)
+
+        h_offset = h_offset + 1.5*draw_text.get_width()
+        draw_text = SELECTION_FONT.render("X", True, WHITE)
+        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
+        h_offset = h_offset + 1.5*draw_text.get_width()
+
+        button_plus_guess_figure = Button(x=self.x + h_offset, y= self.y + offset, text = "^", font = SELECTION_FONT, colour = BLACK)
+        button_plus_guess_figure.draw_button(window, border_colour = ORANGE, border_thickness = 1, text_colour=WHITE)
+        draw_text = SELECTION_FONT.render(self.guess_figure, True, WHITE)
+        h_offset = h_offset + 2 * draw_text.get_width()
+        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
+        h_offset = h_offset + 2 * draw_text.get_width()
+        button_minus_guess_figure = Button(x=self.x + h_offset, y=self.y + offset, text="v", font=SELECTION_FONT,
+                                           colour=BLACK)
+        button_minus_guess_figure.draw_button(window, border_colour=ORANGE, border_thickness=1, text_colour=WHITE)
+
+        offset = offset + button_plus_guess_number.height * 2
 
         # create and draw buttons
         # MAKE GUESS button
@@ -236,7 +267,9 @@ class PlayerActionMenu:
         button_action = Button(x=self.x, y= self.y + offset, text="ACTION!", font=BUTTON_FONT, colour=WHITE)
         button_action.draw_button(window, border_colour = GREEN, border_thickness = 4)
 
-        self.buttons = [button_make_guess, button_exact, button_doubt, button_action]
+        self.buttons = [button_make_guess, button_exact, button_doubt, button_action,
+                        button_plus_guess_number, button_minus_guess_number,
+                        button_plus_guess_figure, button_plus_guess_figure]
 
 class Button:
     def __init__(self, x, y, text = "", font = BUTTON_FONT, colour=WHITE):
@@ -249,11 +282,11 @@ class Button:
         self.height = None
 
 
-    def draw_button(self, win, border_colour, border_thickness = 2):
-        draw_text = self.font.render(self.text, True, BLACK)
+    def draw_button(self, win, border_colour, border_thickness = 2, text_colour = BLACK):
+        draw_text = self.font.render(self.text, True, text_colour)
 
-        self.width = draw_text.get_width() + 10
-        self.height = draw_text.get_height() + 10
+        self.width = draw_text.get_width() * 1.1
+        self.height = draw_text.get_height() * 1.1
 
         if border_colour: # draw a thick border
             draw.rect(win, border_colour, (self.x-border_thickness, self.y-border_thickness, self.width+border_thickness*2, self.height+border_thickness*2),0)
@@ -269,11 +302,25 @@ class Button:
                 return(True)
         return(False)
 
-
-    def handle_event(self, event):
+    def handle_event(self, event, game_window): #TODO events should not be referred to by string
         if event.type == MOUSEBUTTONDOWN:
             if self.isMouseOverButton(event.pos):
-                return(ACTION)
+                if self.text == "ACTION!":
+                    return ACTION
+                elif self.text == "Doubt it!":
+                    return DOUBT
+                elif self.text == "That's correct!":
+                    return EXACT_GUESS
+                elif self.text == "Make guess":
+                    return GUESS
+                elif self.text == "+":
+                    game_window.match_menu.guess_amount = str(int(game_window.match_menu.guess_amount) + 1)
+                elif self.text == "-":
+                    game_window.match_menu.guess_amount = str(max(int(game_window.match_menu.guess_amount) -1, 1))
+                elif self.text == "^":
+                    game_window.match_menu.guess_figure = str(int(game_window.match_menu.guess_figure) + 1) if int(game_window.match_menu.guess_figure) + 1 < 6 else "1"
+                elif self.text == "v":
+                    game_window.match_menu.guess_figure = str(int(game_window.match_menu.guess_figure) - 1) if int(game_window.match_menu.guess_figure) - 1 > 1 else "6"
         return(None)
 
 

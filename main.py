@@ -28,6 +28,7 @@ EXACT_GUESS = pygame.USEREVENT + 6
 GUESS = pygame.USEREVENT + 7
 ACTION = pygame.USEREVENT + 8
 
+
 def main():
     game = Game(number_of_players_computer=5, max_number_of_dice= MAX_NUM_OF_DICE, number_of_players_human=1)
     game.create_players()
@@ -40,39 +41,7 @@ def main():
         clock.tick(FPS)
 
         for event in pygame.event.get(): # event QUEUE
-            if event.type == pygame.QUIT: # "x" button
-                run = False
-                pygame.quit()
-            elif event.type == START_MATCH and game.has_started is False:
-                game.has_started = True
-                game.start_new_round()
-
-            elif event.type == END_ROUND:
-                # erasing guesses from screen
-                pygame.time.delay(2000)
-                game.clear_guesses()
-
-
-            elif event.type == ACTION and game.has_started is True:
-                game.handle_round()
-                if game.has_started == False: #the round has finished
-                    pygame.event.post(pygame.event.Event(END_ROUND))
-
-
-            elif event.type == ACTION and game.has_started is False:
-                pygame.event.post(pygame.event.Event(START_MATCH))
-
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for button in game_window.match_menu.buttons:
-                    button_event = button.handle_event(event)
-                    if button_event is not None:
-                        pygame.event.post(pygame.event.Event(button_event))
-
-
-
-
-
-
+            handle_event(game, event)
         game_window.draw_window(game)
 
         if (game.number_of_remaining_active_players == 1):  # se apenas um jogador tiver sobrado
@@ -80,7 +49,7 @@ def main():
             winner_text = "O jogador vencedor é " + winning_player.get_player_name()
             print(f"O jogador vencedor é {winning_player.get_player_name()}!")
             game_window.draw_winner(winner_text) # SOMEONE WON
-            break
+            run = False
 
 
 def evaluate_game(game):
@@ -94,6 +63,35 @@ def evaluate_game(game):
     #del game
     print(f"Média de acertos:\t{np.average(a_right)}\tDesvio padrão:{np.std(a_right)}")
     print(f"Média de erros:\t{np.average(a_wrong)}\tDesvio padrão:{np.std(a_wrong)}")
+
+def handle_event(game, event):
+    if event.type == pygame.QUIT:  # "x" button
+        pygame.quit()
+
+    elif event.type == pygame.MOUSEBUTTONDOWN: #todo only handle click events for non-computer players
+        for button in game_window.match_menu.buttons:
+            button_event = button.handle_event(event, game_window)
+            if button_event:
+                pygame.event.post(pygame.event.Event(button_event))
+
+    elif event.type == START_MATCH and game.has_started is False:
+        game.has_started = True
+        game.start_new_round()
+
+    if event.type == ACTION or event.type == GUESS or event.type == EXACT_GUESS or event.type == DOUBT:
+        if game.has_started is True:
+            game.handle_event(event, game_window)
+            game.handle_round()
+            if game.has_started == False:  # the round has finished
+                pygame.event.post(pygame.event.Event(END_ROUND))
+        elif event.type == ACTION and game.has_started is False:
+            pygame.event.post(pygame.event.Event(START_MATCH))
+
+    elif event.type == END_ROUND:
+        # erasing guesses from screen
+        pygame.time.delay(2000)
+        game.clear_guesses()
+
 
 
 if __name__ == "__main__":
