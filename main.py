@@ -68,7 +68,7 @@ def handle_event(game, event):
     if event.type == pygame.QUIT:  # "x" button
         pygame.quit()
 
-    elif event.type == pygame.MOUSEBUTTONDOWN: #todo only handle click events for non-computer players
+    elif event.type == pygame.MOUSEBUTTONUP: #todo only handle click events for non-computer players
         for button in game_window.match_menu.buttons:
             button_event = button.handle_event(event, game_window)
             if button_event:
