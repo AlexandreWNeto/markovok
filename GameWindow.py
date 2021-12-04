@@ -25,6 +25,9 @@ from math import atan
 from math import pi
 from math import sqrt
 
+from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
+
+
 
 font.init()
 
@@ -66,15 +69,6 @@ DICE_HIDDEN_IMAGE = transform.scale(
 
 images_dir = os.path.join("imagens")
 
-# USER EVENTS
-START_MATCH = USEREVENT + 1
-END_MATCH = USEREVENT + 2
-START_ROUND = USEREVENT + 3
-END_ROUND = USEREVENT + 4
-DOUBT = USEREVENT + 5
-EXACT_GUESS = USEREVENT + 6
-GUESS = USEREVENT + 7
-ACTION = USEREVENT + 8
 
 class GameWindow:
 
@@ -95,7 +89,7 @@ class GameWindow:
 
     def draw_window(self, game):
         self.WIN.blit(BACKGROUND_IMAGE,(0,0))
-        self.draw_players(game.list_players, mode="HIDE")
+        self.draw_players(game.list_players, mode=game.dice_display_mode)
         self.match_menu.draw_action_menu(self.WIN, game.list_players)
         display.update()
 
@@ -286,12 +280,12 @@ class PlayerActionMenu:
         button_doubt = Button(x=self.x, y= self.y + y_offset, text="Doubt it!", font=BUTTON_FONT, bgn_colour=WHITE, name = "doubt_button")
         button_doubt.draw_button(window, border_colour = ORANGE, border_thickness = 4)
 
-        # ACTION button (Debug)
+        # START button (Debug)
         y_offset = y_offset + button_doubt.height * 2
-        button_action = Button(x=self.x, y= self.y + y_offset, text="ACTION!", font=BUTTON_FONT, bgn_colour=WHITE, name = "action_button")
-        button_action.draw_button(window, border_colour = GREEN, border_thickness = 4)
+        start_button = Button(x=self.x, y= self.y + y_offset, text="START!", font=BUTTON_FONT, bgn_colour=WHITE, name = "start_button")
+        start_button.draw_button(window, border_colour = GREEN, border_thickness = 4)
 
-        self.buttons = [button_make_guess, button_exact, button_doubt, button_action,
+        self.buttons = [button_make_guess, button_exact, button_doubt, start_button,
                         button_plus_guess_number, button_minus_guess_number,
                         button_plus_guess_figure, button_minus_guess_figure]
 
@@ -341,8 +335,8 @@ class Button:
     def handle_event(self, event, game_window): #TODO events should not be referred to by string
         if event.type == MOUSEBUTTONUP:
             if self.is_mouse_over_button(event.pos):
-                if self.name == "action_button":
-                    return ACTION
+                if self.name == "start_button":
+                    return START
                 elif self.name == "doubt_button":
                     return DOUBT
                 elif self.name == "exact_button":

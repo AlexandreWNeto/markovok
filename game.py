@@ -7,15 +7,11 @@ from itertools import cycle
 import secrets
 from collections import deque
 from pygame import USEREVENT
+from pygame import event
+from pygame import time
 
-START_MATCH = USEREVENT + 1
-END_MATCH = USEREVENT + 2
-START_ROUND = USEREVENT + 3
-END_ROUND = USEREVENT + 4
-DOUBT = USEREVENT + 5
-EXACT_GUESS = USEREVENT + 6
-GUESS = USEREVENT + 7
-ACTION = USEREVENT + 8
+from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
+
 
 from time import sleep
 
@@ -42,6 +38,7 @@ class Game:
         self.guess_queue = deque([[0, 0], [0, 0]])
         self.current_guess = None
         self.current_player = None
+        self.dice_display_mode = "HIDE"
 
 
     def create_players(self):
@@ -100,6 +97,7 @@ class Game:
                 else:
                     print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
                 player.guess = " ".join(str(_) for _ in guess)  # registra o palpite
+                print(f"Palpite do usuário:{player.guess}")
         else:  # if the player is a computer
             guess = player.make_guess(previous_guess, self.list_players)
             self.current_guess = guess
@@ -122,59 +120,80 @@ class Game:
         for _ in range(secrets.choice(list(range(len(self.list_players))))):
             self.current_player = next(self.players_iterator)
 
+        self.dice_display_mode = "HIDE" # hide the non-user dice
+        event.post(event.Event(ACTION))  # trigger next action
+
     def handle_round(self):
         guess = None
         previous_guess = None
+        print(f"Início do round. Jogador da vez: {self.current_player.name}")
         if self.current_player is None:
             return()
         if self.current_player.type == "pc":
             # moving the guess queue
             self.guess_queue.popleft()  # remove the oldest guess from the guess queue
             # (there should only be two guesses at the guess queue at any given time)
-            previous_guess = self.guess_queue[0]
+            previous_guess = self.guess_queue[0] # get the previous guess
             guess = self.get_player_guess(self.current_player, previous_guess)  # determine the new guess
             self.guess_queue.append(guess)  # add the new guess to the guess queue
+            event.post(event.Event(ACTION)) # trigger next action
+            time.delay(1000) # set minimum time between player actions
+
         elif self.current_player.type == "user":
+            if self.current_guess == self.guess_queue[1]: # if the player hasn't guessed yet
+                self.current_guess = None
+
             guess = self.get_player_guess(self.current_player)  # determine the new guess
-            if guess is not None:
+            if guess:
                 self.guess_queue.popleft()  # remove the oldest guess from the guess queue
+                previous_guess = self.guess_queue[0] # get the previous guess
                 self.guess_queue.append(guess)  # add the new guess to the guess queue
+                print(f"guess_queue: {self.guess_queue}")
+                event.post(event.Event(ACTION))  # trigger next action
+                time.delay(1000)  # set minimum time between player actions
 
         if guess and (guess[0] <= 0):  # se alguém tiver julgado o palpite anterior incorreto/exato
-            # a rodada acabará
-            self.reveal_table()  # revela os dados da mesa
-            if (guess[1] == 0):  # se alguém tiver julgado o palpite anterior exato
-                if (self.evaluate_guess(guess, previous_guess) == "wrong"):
-                    self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
-                    print("Julgamento incorreto.\n")
-                else:
-                    for _ in range(len(self.list_players) - 1):
-                        self.current_player = next(self.players_iterator)
-                        self.current_player.remove_dice(1)  # remove um dado de todos os outros jogadores
-                    print("Julgamento correto.\n")
+            self.do_end_of_round(guess, previous_guess)
+            return()
+        print(self.current_player.name, self.current_guess)
+        #if guess:
+         #   self.advance_to_next_player()  # move the turn to the next player
+        return ()
 
-            elif (self.evaluate_guess(guess, previous_guess) == "wrong"):  # se alguém tiver julgado o palpite anterior exato
+    def do_end_of_round(self, guess, previous_guess):
+        self.reveal_table()  # revela os dados da mesa
+        self.dice_display_mode = "REVEAL" # reveal all dice
+        if (guess[1] == 0):  # se alguém tiver julgado o palpite anterior exato
+            if (self.evaluate_guess(guess, previous_guess) == "wrong"):
                 self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
-                self.n_wrong_decisions = self.n_wrong_decisions + 1
             else:
                 for _ in range(len(self.list_players) - 1):
                     self.current_player = next(self.players_iterator)
-                self.current_player.remove_dice(1)  # remove um dado do jogador que fez o palpite anterior
+                    self.current_player.remove_dice(1)  # remove um dado de todos os outros jogadores
                 print("Julgamento correto.\n")
-                self.n_right_decisions = self.n_right_decisions + 1
-            # sleep(1)
-            print("Fim da rodada.")
-            print("--------------------\n")
-            # sleep(1.5)
 
-            if (self.current_player.number_of_dice_remaining == 0):
-                self.remove_player_from_list(self.current_player)
-            self.has_started = False
-            self.guess_queue = deque([[0, 0], [0, 0]]) # clear the guess queue for the next round
-            # sleep(1)
-        self.advance_to_next_player()  # move the turn to the next player
-        return ()
+        # se alguém tiver julgado o palpite anterior errado
+        elif (self.evaluate_guess(guess, previous_guess) == "wrong"):
+            self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
+            print("Julgamento incorreto.\n")
+            self.n_wrong_decisions = self.n_wrong_decisions + 1
+        else:
+            for _ in range(len(self.list_players) - 1):
+                self.current_player = next(self.players_iterator)
+            self.current_player.remove_dice(1)  # remove um dado do jogador que fez o palpite anterior
+            print("Julgamento correto.\n")
+            self.n_right_decisions = self.n_right_decisions + 1
+        # sleep(1)
+        print("Fim da rodada.")
+        print("--------------------\n")
+        # sleep(1.5)
+
+        if (self.current_player.number_of_dice_remaining == 0):
+            self.remove_player_from_list(self.current_player)
+        self.has_started = False
+        self.guess_queue = deque([[0, 0], [0, 0]])  # clear the guess queue for the next round
+        # sleep(1)
 
     def evaluate_guess(self, guess, previous_guess):
         previous_guess_amount = previous_guess[0]
@@ -200,12 +219,16 @@ class Game:
     def handle_event(self, event, game_window):
         if event.type == DOUBT:
             self.current_guess = [-1, -1]
+            print(self.current_guess)
         elif event.type == EXACT_GUESS:
             self.current_guess = [-1, 0]
+            print(self.current_guess)
         elif event.type == GUESS:
             self.current_guess = [int(game_window.match_menu.guess_amount), int(game_window.match_menu.guess_figure)]
+            print(f"Botão clicado. Palpite do usuário: {self.current_guess}")
         elif event.type == ACTION:
-            print(self.current_guess)
+            print(self.current_player.name, self.current_guess)
+            self.advance_to_next_player()  # move the turn to the next player
 
     def advance_to_next_player(self):
         self.current_player = next(self.players_iterator)  # é a vez de jogar do próximo jogador

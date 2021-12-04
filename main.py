@@ -9,8 +9,9 @@ import numpy as np
 
 import os
 
-FPS = 60
-MAX_NUM_OF_DICE = 3
+from setup import FPS, MAX_NUM_OF_DICE, NUM_PC_PLAYERS, NUM_USER_PLAYERS
+from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
+
 
 game_window = GameWindow(MAX_NUM_OF_DICE)
 game_window.set_screen()
@@ -18,19 +19,11 @@ game_window.set_screen()
 width = game_window.WIN.get_width()
 height = game_window.WIN.get_height()
 
-# USER EVENTS
-START_MATCH = pygame.USEREVENT + 1
-END_MATCH = pygame.USEREVENT + 2
-START_ROUND = pygame.USEREVENT + 3
-END_ROUND = pygame.USEREVENT + 4
-DOUBT = pygame.USEREVENT + 5
-EXACT_GUESS = pygame.USEREVENT + 6
-GUESS = pygame.USEREVENT + 7
-ACTION = pygame.USEREVENT + 8
 
 
 def main():
-    game = Game(number_of_players_computer=5, max_number_of_dice= MAX_NUM_OF_DICE, number_of_players_human=1)
+    game = Game(number_of_players_computer=NUM_PC_PLAYERS, number_of_players_human=NUM_USER_PLAYERS,
+                max_number_of_dice= MAX_NUM_OF_DICE)
     game.create_players()
     game.shuffle_dice()
     game_window.set_player_coordinates(game.list_players)
@@ -78,14 +71,15 @@ def handle_event(game, event):
         game.has_started = True
         game.start_new_round()
 
+    if event.type == START and game.has_started is False:
+            pygame.event.post(pygame.event.Event(START_MATCH))
+
     if event.type == ACTION or event.type == GUESS or event.type == EXACT_GUESS or event.type == DOUBT:
         if game.has_started is True:
             game.handle_event(event, game_window)
             game.handle_round()
             if game.has_started == False:  # the round has finished
                 pygame.event.post(pygame.event.Event(END_ROUND))
-        elif event.type == ACTION and game.has_started is False:
-            pygame.event.post(pygame.event.Event(START_MATCH))
 
     elif event.type == END_ROUND:
         # erasing guesses from screen
