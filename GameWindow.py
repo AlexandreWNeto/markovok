@@ -46,28 +46,28 @@ BUTTON_FONT = font.SysFont("verdana",20) # font, size
 SELECTION_FONT = font.SysFont("verdana",20) # font, size
 
 BACKGROUND_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","fundo.jpg")),(WIDTH, HEIGHT))
+    image.load(os.path.join("media", "fundo.jpg")),(WIDTH, HEIGHT))
 
 DICE_WIDTH, DICE_HEIGHT = WIDTH // 25, WIDTH // 25
 
 DICE_1_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","1.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "1.png")), (DICE_WIDTH, DICE_HEIGHT))
 DICE_2_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","2.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "2.png")), (DICE_WIDTH, DICE_HEIGHT))
 DICE_3_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","3.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "3.png")), (DICE_WIDTH, DICE_HEIGHT))
 DICE_4_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","4.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "4.png")), (DICE_WIDTH, DICE_HEIGHT))
 DICE_5_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","5.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "5.png")), (DICE_WIDTH, DICE_HEIGHT))
 DICE_6_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","6.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "6.png")), (DICE_WIDTH, DICE_HEIGHT))
 
 DICE_HIDDEN_IMAGE = transform.scale(
-    image.load(os.path.join("imagens","hidden_dice.png")), (DICE_WIDTH, DICE_HEIGHT))
+    image.load(os.path.join("media", "hidden_dice.png")), (DICE_WIDTH, DICE_HEIGHT))
 
 
-images_dir = os.path.join("imagens")
+images_dir = os.path.join("media")
 
 
 class GameWindow:

@@ -1,5 +1,6 @@
 from pygame import USEREVENT
-
+from pygame import mixer
+from os import path
 
 FPS = 60
 
@@ -16,3 +17,7 @@ EXACT_GUESS = USEREVENT + 6
 GUESS = USEREVENT + 7
 ACTION = USEREVENT + 8
 START = USEREVENT + 9
+
+CLICK_SOUND = mixer.Sound(path.join("media","click.mp3"))
+DOUBT_SOUND = mixer.Sound(path.join("media","doubt.mp3"))
+

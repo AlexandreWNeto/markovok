@@ -3,9 +3,13 @@ Arquivo principal do jogo
 """
 
 import pygame
+
 from game import Game
+
 from GameWindow import GameWindow
 import numpy as np
+
+
 
 import os
 

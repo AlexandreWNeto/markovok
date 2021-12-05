@@ -4,13 +4,18 @@ Esta classe define uma rodada do jogo
 
 from player import Player
 from itertools import cycle
+
 import secrets
 from collections import deque
+
 from pygame import USEREVENT
 from pygame import event
 from pygame import time
+from pygame import mixer
+mixer.init()
 
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
+from setup import CLICK_SOUND, DOUBT_SOUND
 
 
 from time import sleep
@@ -89,6 +94,7 @@ class Game:
                 "\t0  (caso ache que o palpite anterior esteja exatamente correto)\n"
                 "\t-1 (caso ache que o palpite anterior esteja incorreto)\n").strip().split()))'''
             guess = self.current_guess
+            guess = self.check_guess_validity(guess, previous_guess)
             if (guess != None):
                 if (guess[1] == 0):  # palpite exato
                     print(f"{player.get_player_name()}:\tPalpite exato!")
@@ -126,7 +132,7 @@ class Game:
     def handle_round(self):
         guess = None
         previous_guess = None
-        print(f"Início do round. Jogador da vez: {self.current_player.name}")
+        print(f"\n Jogador da vez: {self.current_player.name}")
         if self.current_player is None:
             return()
         if self.current_player.type == "pc":
@@ -142,15 +148,14 @@ class Game:
         elif self.current_player.type == "user":
             if self.current_guess == self.guess_queue[1]: # if the player hasn't guessed yet
                 self.current_guess = None
-
-            guess = self.get_player_guess(self.current_player)  # determine the new guess
+            previous_guess = self.guess_queue[1]  # get the previous guess
+            guess = self.get_player_guess(self.current_player, previous_guess)  # determine the new guess
             if guess:
                 self.guess_queue.popleft()  # remove the oldest guess from the guess queue
                 previous_guess = self.guess_queue[0] # get the previous guess
                 self.guess_queue.append(guess)  # add the new guess to the guess queue
-                print(f"guess_queue: {self.guess_queue}")
                 event.post(event.Event(ACTION))  # trigger next action
-                time.delay(1000)  # set minimum time between player actions
+                #time.delay(1000)  # set minimum time between player actions
 
         if guess and (guess[0] <= 0):  # se alguém tiver julgado o palpite anterior incorreto/exato
             self.do_end_of_round(guess, previous_guess)
@@ -174,16 +179,18 @@ class Game:
                 print("Julgamento correto.\n")
 
         # se alguém tiver julgado o palpite anterior errado
-        elif (self.evaluate_guess(guess, previous_guess) == "wrong"):
-            self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
-            print("Julgamento incorreto.\n")
-            self.n_wrong_decisions = self.n_wrong_decisions + 1
         else:
-            for _ in range(len(self.list_players) - 1):
-                self.current_player = next(self.players_iterator)
-            self.current_player.remove_dice(1)  # remove um dado do jogador que fez o palpite anterior
-            print("Julgamento correto.\n")
-            self.n_right_decisions = self.n_right_decisions + 1
+            DOUBT_SOUND.play()
+            if (self.evaluate_guess(guess, previous_guess) == "wrong"):
+                self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
+                print("Julgamento incorreto.\n")
+                self.n_wrong_decisions = self.n_wrong_decisions + 1
+            else:
+                for _ in range(len(self.list_players) - 1):
+                    self.current_player = next(self.players_iterator)
+                self.current_player.remove_dice(1)  # remove um dado do jogador que fez o palpite anterior
+                print("Julgamento correto.\n")
+                self.n_right_decisions = self.n_right_decisions + 1
         # sleep(1)
         print("Fim da rodada.")
         print("--------------------\n")
@@ -220,6 +227,7 @@ class Game:
         if event.type == DOUBT:
             self.current_guess = [-1, -1]
             print(self.current_guess)
+            DOUBT_SOUND.play()
         elif event.type == EXACT_GUESS:
             self.current_guess = [-1, 0]
             print(self.current_guess)
@@ -227,8 +235,10 @@ class Game:
             self.current_guess = [int(game_window.match_menu.guess_amount), int(game_window.match_menu.guess_figure)]
             print(f"Botão clicado. Palpite do usuário: {self.current_guess}")
         elif event.type == ACTION:
-            print(self.current_player.name, self.current_guess)
+            if self.current_player and self.current_guess:
+                print(self.current_player.name, self.current_guess)
             self.advance_to_next_player()  # move the turn to the next player
+            CLICK_SOUND.play()
 
     def advance_to_next_player(self):
         self.current_player = next(self.players_iterator)  # é a vez de jogar do próximo jogador
@@ -239,3 +249,15 @@ class Game:
 
         while (self.current_player.number_of_dice_remaining == 0):  # se um jogador tiver perdido todos os dados
             self.current_player = next(self.players_iterator)  # passa para o próximo jogador
+
+    def check_guess_validity(self, guess, previous_guess):
+        print(guess)
+        print(previous_guess)
+        if guess and previous_guess:
+            if guess == previous_guess:
+                return(None)
+            elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]: # quantidade igual ou menor mas figura igual ou menor
+                return(None)
+            else:
+                return(guess)
+        return(guess)
