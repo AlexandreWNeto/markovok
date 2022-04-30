@@ -17,7 +17,7 @@ EXACT_GUESS = USEREVENT + 6
 GUESS = USEREVENT + 7
 ACTION = USEREVENT + 8
 START = USEREVENT + 9
-
+mixer.init()
 CLICK_SOUND = mixer.Sound(path.join("media","click.mp3"))
 DOUBT_SOUND = mixer.Sound(path.join("media","doubt.mp3"))
 

@@ -28,7 +28,6 @@ from math import sqrt
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
 
 
-
 font.init()
 
 WIDTH, HEIGHT = 900, 650

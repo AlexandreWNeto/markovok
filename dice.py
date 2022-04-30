@@ -4,6 +4,8 @@ Esta classe define os dados e seus métodos
 """
 
 import secrets
+
+
 class Dice:
     def __init__(self,number_of_dice=5):
 

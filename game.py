@@ -12,13 +12,36 @@ from pygame import USEREVENT
 from pygame import event
 from pygame import time
 from pygame import mixer
-mixer.init()
 
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
 from setup import CLICK_SOUND, DOUBT_SOUND
 
-
 from time import sleep
+
+
+mixer.init()
+
+
+def check_guess_validity(guess, previous_guess):
+    print(guess)
+    print(previous_guess) # previous guess starts as [0,0] at the beginning of the round
+    if guess and previous_guess != [0,0]:
+        if guess[0] == -1: # se o jogador julgou o palpite anterior como EXATO ou INCORRETO
+            return guess
+        elif guess == previous_guess:
+            print("Palpite inválido!")
+            return None
+        # quantidade igual ou menor, mas figura igual ou menor
+        elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]:
+            print("Palpite inválido!")
+            return None
+        else:
+            return guess
+    elif guess and previous_guess == [0,0] and guess[0] == -1:    # usuário tentou julgar o palpite anterior, mas não há palpite anterior (i.e. o usuário é o primeiro a jogar)
+        print("Palpite inválido!")
+        return None
+    else:
+        return guess
 
 
 class Game:
@@ -40,11 +63,10 @@ class Game:
         self.number_of_remaining_active_players = self.number_of_players_human + self.number_of_players_computer
         self.n_right_decisions = 0
         self.n_wrong_decisions = 0
-        self.guess_queue = deque([[0, 0], [0, 0]])
+        self.guess_queue = deque([[0,0], [0,0]])
         self.current_guess = None
         self.current_player = None
         self.dice_display_mode = "HIDE"
-
 
     def create_players(self):
         for i in range(self.number_of_players_human):
@@ -84,21 +106,21 @@ class Game:
         count = 0
         for player in self.list_players:
             count = count + player.count_figures_on_hand(figure)
-        return (count)
+        return count
 
-    def get_player_guess(self, player, previous_guess = None):
-        if (player.type == "user"):  # if the player is an user
+    def get_player_guess(self, player, previous_guess=None):
+        if player.type == "user":  # if the player is an user
             '''  guess = list(map(int, input(
                 "Escreva seu palpite\nFormatos de palpite possíveis:\n"
                 "\tnúmero_de_dados figura, separados por um espaço (ex.: 1 2)\n"
                 "\t0  (caso ache que o palpite anterior esteja exatamente correto)\n"
                 "\t-1 (caso ache que o palpite anterior esteja incorreto)\n").strip().split()))'''
             guess = self.current_guess
-            guess = self.check_guess_validity(guess, previous_guess)
-            if (guess != None):
-                if (guess[1] == 0):  # palpite exato
+            guess = check_guess_validity(guess, previous_guess)
+            if guess is not None:
+                if guess[1] == 0:  # palpite exato
                     print(f"{player.get_player_name()}:\tPalpite exato!")
-                elif (guess[1] == -1):  # palpite incorreto
+                elif guess[1] == -1:  # palpite incorreto
                     print(f"{player.get_player_name()}:\tPalpite incorreto!")
                 else:
                     print(f"{player.get_player_name()}:\tPalpite: {guess[0]} dados mostrando o número {guess[1]}")
@@ -107,7 +129,7 @@ class Game:
         else:  # if the player is a computer
             guess = player.make_guess(previous_guess, self.list_players)
             self.current_guess = guess
-        return(guess)
+        return guess
 
     def shuffle_dice(self):
         for player in self.list_players:
@@ -126,7 +148,7 @@ class Game:
         for _ in range(secrets.choice(list(range(len(self.list_players))))):
             self.current_player = next(self.players_iterator)
 
-        self.dice_display_mode = "HIDE" # hide the non-user dice
+        self.dice_display_mode = "HIDE"  # hide the non-user dice
         event.post(event.Event(ACTION))  # trigger next action
 
     def handle_round(self):
@@ -134,42 +156,42 @@ class Game:
         previous_guess = None
         print(f"\n Jogador da vez: {self.current_player.name}")
         if self.current_player is None:
-            return()
+            return ()
         if self.current_player.type == "pc":
             # moving the guess queue
             self.guess_queue.popleft()  # remove the oldest guess from the guess queue
             # (there should only be two guesses at the guess queue at any given time)
-            previous_guess = self.guess_queue[0] # get the previous guess
+            previous_guess = self.guess_queue[0]  # get the previous guess
             guess = self.get_player_guess(self.current_player, previous_guess)  # determine the new guess
             self.guess_queue.append(guess)  # add the new guess to the guess queue
-            event.post(event.Event(ACTION)) # trigger next action
-            time.delay(1000) # set minimum time between player actions
+            event.post(event.Event(ACTION))  # trigger next action
+            time.delay(1000)  # set minimum time between player actions
 
         elif self.current_player.type == "user":
-            if self.current_guess == self.guess_queue[1]: # if the player hasn't guessed yet
+            if self.current_guess == self.guess_queue[1]:  # if the player hasn't guessed yet
                 self.current_guess = None
             previous_guess = self.guess_queue[1]  # get the previous guess
             guess = self.get_player_guess(self.current_player, previous_guess)  # determine the new guess
             if guess:
                 self.guess_queue.popleft()  # remove the oldest guess from the guess queue
-                previous_guess = self.guess_queue[0] # get the previous guess
+                previous_guess = self.guess_queue[0]  # get the previous guess
                 self.guess_queue.append(guess)  # add the new guess to the guess queue
                 event.post(event.Event(ACTION))  # trigger next action
-                #time.delay(1000)  # set minimum time between player actions
+                # time.delay(1000)  # set minimum time between player actions
 
         if guess and (guess[0] <= 0):  # se alguém tiver julgado o palpite anterior incorreto/exato
             self.do_end_of_round(guess, previous_guess)
-            return()
+            return ()
         print(self.current_player.name, self.current_guess)
-        #if guess:
-         #   self.advance_to_next_player()  # move the turn to the next player
+        # if guess:
+        #   self.advance_to_next_player()  # move the turn to the next player
         return ()
 
     def do_end_of_round(self, guess, previous_guess):
         self.reveal_table()  # revela os dados da mesa
-        self.dice_display_mode = "REVEAL" # reveal all dice
-        if (guess[1] == 0):  # se alguém tiver julgado o palpite anterior exato
-            if (self.evaluate_guess(guess, previous_guess) == "wrong"):
+        self.dice_display_mode = "REVEAL"  # reveal all dice
+        if guess[1] == 0:  # se alguém tiver julgado o palpite anterior exato
+            if self.evaluate_guess(guess, previous_guess) == "wrong":
                 self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
             else:
@@ -181,7 +203,7 @@ class Game:
         # se alguém tiver julgado o palpite anterior errado
         else:
             DOUBT_SOUND.play()
-            if (self.evaluate_guess(guess, previous_guess) == "wrong"):
+            if self.evaluate_guess(guess, previous_guess) == "wrong":
                 self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
                 self.n_wrong_decisions = self.n_wrong_decisions + 1
@@ -196,32 +218,31 @@ class Game:
         print("--------------------\n")
         # sleep(1.5)
 
-        if (self.current_player.number_of_dice_remaining == 0):
+        if self.current_player.number_of_dice_remaining == 0:
             self.remove_player_from_list(self.current_player)
         self.has_started = False
-        self.guess_queue = deque([[0, 0], [0, 0]])  # clear the guess queue for the next round
+        self.guess_queue = deque([[0,0], [0,0]])  # clear the guess queue for the next round
         # sleep(1)
 
     def evaluate_guess(self, guess, previous_guess):
         previous_guess_amount = previous_guess[0]
         previous_guess_figure = previous_guess[1]
 
-        if (guess[1] == -1):  # se alguém julgou o palpite anterior como incorreto
-            if (previous_guess_amount > self.count_figure_in_table(previous_guess_figure)):
-                return ("right")
+        if guess[1] == -1:  # se alguém julgou o palpite anterior como incorreto
+            if previous_guess_amount > self.count_figure_in_table(previous_guess_figure):
+                return "right"
             else:
-                return ("wrong")
-        elif (guess[1] == 0):  # se alguém julgou o palpite anterior como exato
-            if (previous_guess_amount == self.count_figure_in_table(previous_guess_figure)):
-                return ("right")
+                return "wrong"
+        elif guess[1] == 0:  # se alguém julgou o palpite anterior como exato
+            if previous_guess_amount == self.count_figure_in_table(previous_guess_figure):
+                return "right"
             else:
-                return ("wrong")
+                return "wrong"
 
     def clear_guesses(self):
         for player in self.list_players:
             player.guess = " "
         self.current_guess = None
-
 
     def handle_event(self, event, game_window):
         if event.type == DOUBT:
@@ -243,21 +264,10 @@ class Game:
     def advance_to_next_player(self):
         self.current_player = next(self.players_iterator)  # é a vez de jogar do próximo jogador
 
-        if (self.current_player.type == "user"):  # só mostra os dados dos jogadores que são pessoas,mas não dos jogadores que são controlados pelo computador
+        if self.current_player.type == "user":  # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
             self.current_player.print_summary()
             pass
 
-        while (self.current_player.number_of_dice_remaining == 0):  # se um jogador tiver perdido todos os dados
+        while self.current_player.number_of_dice_remaining == 0:  # se um jogador tiver perdido todos os dados
             self.current_player = next(self.players_iterator)  # passa para o próximo jogador
 
-    def check_guess_validity(self, guess, previous_guess):
-        print(guess)
-        print(previous_guess)
-        if guess and previous_guess:
-            if guess == previous_guess:
-                return(None)
-            elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]: # quantidade igual ou menor mas figura igual ou menor
-                return(None)
-            else:
-                return(guess)
-        return(guess)
