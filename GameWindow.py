@@ -199,19 +199,52 @@ class PlayerActionMenu:
         self.guess_amount = "1"
         self.guess_figure = "6"
 
+    def draw_dice(self, window, guess_figure, dice_height, x, y):
+        if guess_figure == "1":
+            window.blit(transform.scale(DICE_1_IMAGE, (dice_height,dice_height)),(x, y))
+        elif guess_figure == "2":
+            window.blit(transform.scale(DICE_2_IMAGE, (dice_height,dice_height)),(x, y))
+        elif guess_figure == "3":
+            window.blit(transform.scale(DICE_3_IMAGE, (dice_height,dice_height)),(x, y))
+        elif guess_figure == "4":
+            window.blit(transform.scale(DICE_4_IMAGE, (dice_height,dice_height)),(x, y))
+        elif guess_figure == "5":
+            window.blit(transform.scale(DICE_5_IMAGE, (dice_height,dice_height)),(x, y))
+        elif guess_figure == "6":
+            window.blit(transform.scale(DICE_6_IMAGE, (dice_height,dice_height)),(x, y))
+
+
     def draw_action_menu(self, window, player_list, erase_guesses = False):
         y_offset = 0
+        h_offset = 0
         for player in player_list:
             if erase_guesses is True:
                 draw_text = PLAYER_FONT.render("      ", True, WHITE)
                 window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
             else:
-                draw_text = PLAYER_FONT.render(player.name + "  " + player.guess, True, WHITE)
-                window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
-            y_offset = y_offset + draw_text.get_height() * 2
+                if player.guess.split():
+                    player_guess = player.guess.split()
+                    if player_guess[0] != "-1":
+                        draw_text = PLAYER_FONT.render(player.name + "  " + player_guess[0] + "x ", True, WHITE)
+                        window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
+                        dice_height = draw_text.get_height()
+                        self.draw_dice(window, player_guess[1], dice_height, self.x + draw_text.get_width(), self.y - draw_text.get_height() / 2 + y_offset)
+                        y_offset = y_offset + draw_text.get_height() * 2
+                    elif player_guess == ['-1', "0"]:
+                        draw_text = PLAYER_FONT.render(player.name + "  " +"That's correct!", True, WHITE)
+                        window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
+                        y_offset = y_offset + draw_text.get_height() * 2
+                    else:
+                        draw_text = PLAYER_FONT.render(player.name + "  " + "Doubt!", True, WHITE)
+                        window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
+                        y_offset = y_offset + draw_text.get_height() * 2
+
+                else:
+                    draw_text = PLAYER_FONT.render(player.name, True, WHITE)
+                    window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
+                    y_offset = y_offset + draw_text.get_height() * 2
 
         y_offset = y_offset - 20
-
         h_offset = 0
 
         # GUESS AMOUNT
@@ -239,24 +272,9 @@ class PlayerActionMenu:
 
         dice_height = draw_text.get_height()
         h_offset = h_offset + dice_height
-        if self.guess_figure == "1":
-            window.blit(transform.scale(DICE_1_IMAGE, (dice_height,dice_height)),
-                        (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        elif self.guess_figure == "2":
-            window.blit(transform.scale(DICE_2_IMAGE, (dice_height,dice_height)),
-                        (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        elif self.guess_figure == "3":
-            window.blit(transform.scale(DICE_3_IMAGE, (dice_height,dice_height)),
-                        (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        elif self.guess_figure == "4":
-            window.blit(transform.scale(DICE_4_IMAGE, (dice_height,dice_height)),
-                        (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        elif self.guess_figure == "5":
-            window.blit(transform.scale(DICE_5_IMAGE, (dice_height,dice_height)),
-                        (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        elif self.guess_figure == "6":
-            window.blit(transform.scale(DICE_6_IMAGE, (dice_height,dice_height)),
-                        (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
+
+        self.draw_dice(window, self.guess_figure, dice_height, button_plus_guess_number.x + h_offset, button_plus_guess_number.y)
+
         h_offset = h_offset + 1.5*dice_height
 
         button_minus_guess_figure = Button(x=self.x + h_offset, y=self.y + y_offset, text="-", font=SELECTION_FONT, txt_colour=BLACK, name = "decrease_guess_figure_button")
@@ -353,6 +371,7 @@ class Button:
                     game_window.match_menu.guess_figure = (str(int(game_window.match_menu.guess_figure) - 1) if int(game_window.match_menu.guess_figure) > 1 else "6")
                     print(game_window.match_menu.guess_figure)
         return(None)
+
 
 
 
