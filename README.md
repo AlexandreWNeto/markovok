@@ -60,7 +60,6 @@ For example:
 - invalid guess: 4 x 3
 - valid guess: 1 x 5
 - valid guess: 5 x 3
-
 ```
 
 
