@@ -30,7 +30,7 @@ from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_G
 
 font.init()
 
-WIDTH, HEIGHT = 900, 650
+WIDTH, HEIGHT = 1000, 650
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -47,7 +47,7 @@ SELECTION_FONT = font.SysFont("verdana",20) # font, size
 BACKGROUND_IMAGE = transform.scale(
     image.load(os.path.join("media", "fundo.jpg")),(WIDTH, HEIGHT))
 
-DICE_WIDTH, DICE_HEIGHT = WIDTH // 25, WIDTH // 25
+DICE_WIDTH, DICE_HEIGHT = WIDTH // 30, WIDTH // 30
 
 DICE_1_IMAGE = transform.scale(
     image.load(os.path.join("media", "1.png")), (DICE_WIDTH, DICE_HEIGHT))
@@ -93,20 +93,25 @@ class GameWindow:
         display.update()
 
     def draw_players(self, players, mode = "HIDE"):
-        if mode == "REVEAL":
-            for player in players:
+        for player in players:
+            if mode == "REVEAL":
                 self.draw_dice(player, mode)
-        elif mode == "HIDE":
-            for player in players:
+            elif mode == "HIDE":
                 if player.type == "pc":
                     self.draw_dice(player, mode)
                 else:
                     self.draw_dice(player, "REVEAL")    # only reveal dice from user players
-        else:
-            print("Error in function draw_players. Invalid draw mode.")
+            else:
+                print("Error in function draw_players. Invalid draw mode.")
+            self.draw_player_name(player)
 
+    def draw_player_name(self, player):
+        x = player.name_coordinates[0]
+        y = player.name_coordinates[1]
+        draw_text = PLAYER_FONT.render(player.name , True, WHITE)
+        self.WIN.blit(draw_text, (x, y))
 
-    def draw_dice(self, player, mode = "REVEAL"):
+    def draw_dice(self, player, mode="REVEAL"):
 
         dice_list = player.get_set_of_dice().dice_list
 
@@ -163,7 +168,7 @@ class GameWindow:
         num_players = len(list_of_players)
         center_x = WIDTH // 3
         center_y = HEIGHT // 2
-        radius = WIDTH // 3
+        radius = WIDTH // 4
 
         if num_players == 2: # place the dice in two parallel lines
             delta = 0
@@ -176,16 +181,26 @@ class GameWindow:
             vertices = list((
                                (sin(i / num_players * 2 * pi + pi/num_players) * radius) + center_x,
                                (cos(i / num_players * 2 * pi + pi/num_players) * radius) + center_y)
-                            for i in range(-1, num_players -1))
+                            for i in range(-1, num_players - 1))
+            # coordinates of the vertices of the polygon on which the player names will be placed
+            name_vertices = list((
+                               (sin(i / num_players * 2 * pi + pi/num_players) * 1.3 * radius) + center_x,
+                               (cos(i / num_players * 2 * pi + pi/num_players) * 1.3 * radius) + center_y)
+                            for i in range(-1, num_players - 1))
 
             i = 0
             for player in list_of_players:
                 player.vertices = (vertices[i], vertices[i+1 if i != num_players - 1 else 0])
+                player_name_vertices = (name_vertices[i], name_vertices[i+1 if i != num_players - 1 else 0])
+                print(player_name_vertices)
+                player.name_coordinates = ((player_name_vertices[0][0] + player_name_vertices[1][0]) / 2,
+                                           (player_name_vertices[0][1] + player_name_vertices[1][1]) / 2)
+                print(player.name_coordinates)
                 i += 1
 
     def draw_winner(self, text):
         draw_text = WINNER_FONT.render(text, True, WHITE)
-        self.WIN.blit(draw_text, (self.SCREEN_WIDTH / 2 - draw_text.get_width() / 2, self.SCREEN_HEIGHT / 2 - draw_text.get_height() / 2))
+        self.WIN.blit(draw_text, (self.SCREEN_WIDTH / 2 - draw_text.get_width() / 3, self.SCREEN_HEIGHT / 2 - draw_text.get_height() / 3))
 
         display.update()  # updates the screen before the pause
         time.delay(5000)  # pauses the game
@@ -326,8 +341,8 @@ class Button:
     def draw_button(self, win, border_colour, border_thickness = 2):
         if self.text:
             draw_text = self.font.render(self.text, True, self.txt_colour)
-            self.width = draw_text.get_width() * 1.1
-            self.height = draw_text.get_height() * 1.1
+            self.width = draw_text.get_width() * 1
+            self.height = draw_text.get_height() * 0.8
 
             if border_colour: # draw a thick border
                 draw.rect(win, border_colour,

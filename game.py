@@ -15,6 +15,7 @@ from pygame import mixer
 
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
 from setup import CLICK_SOUND, DOUBT_SOUND
+from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 
 from time import sleep
 
@@ -165,7 +166,7 @@ class Game:
             guess = self.get_player_guess(self.current_player, previous_guess)  # determine the new guess
             self.guess_queue.append(guess)  # add the new guess to the guess queue
             event.post(event.Event(ACTION))  # trigger next action
-            time.delay(1000)  # set minimum time between player actions
+            time.delay(DELAY_BETWEEN_GUESSES)  # set minimum time between player actions
 
         elif self.current_player.type == "user":
             if self.current_guess == self.guess_queue[1]:  # if the player hasn't guessed yet
@@ -177,7 +178,7 @@ class Game:
                 previous_guess = self.guess_queue[0]  # get the previous guess
                 self.guess_queue.append(guess)  # add the new guess to the guess queue
                 event.post(event.Event(ACTION))  # trigger next action
-                # time.delay(1000)  # set minimum time between player actions
+                # time.delay(DELAY_BETWEEN_GUESSES)  # set minimum time between player actions
 
         if guess and (guess[0] <= 0):  # se alguém tiver julgado o palpite anterior incorreto/exato
             self.do_end_of_round(guess, previous_guess)

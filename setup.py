@@ -5,7 +5,7 @@ from os import path
 FPS = 60
 
 MAX_NUM_OF_DICE = 5
-NUM_PC_PLAYERS = 2
+NUM_PC_PLAYERS = 5
 NUM_USER_PLAYERS = 1
 # USER EVENTS
 START_MATCH = USEREVENT + 1
@@ -20,4 +20,6 @@ START = USEREVENT + 9
 mixer.init()
 CLICK_SOUND = mixer.Sound(path.join("media","click.mp3"))
 DOUBT_SOUND = mixer.Sound(path.join("media","doubt.mp3"))
+DELAY_BETWEEN_ROUNDS = 1600 # delay between rounds, in milisseconds
+DELAY_BETWEEN_GUESSES = 800 # time delay between player guesses, in milisseconds
 

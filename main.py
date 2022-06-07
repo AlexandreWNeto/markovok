@@ -13,6 +13,7 @@ import os
 
 from setup import FPS, MAX_NUM_OF_DICE, NUM_PC_PLAYERS, NUM_USER_PLAYERS
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
+from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 
 game_window = GameWindow(MAX_NUM_OF_DICE)
 game_window.set_screen()
@@ -84,8 +85,9 @@ def handle_event(game, event):
 
     elif event.type == END_ROUND:
         # erasing guesses from screen
-        pygame.time.delay(2000)
+        pygame.time.delay(DELAY_BETWEEN_ROUNDS)
         game.clear_guesses()
+        pygame.event.post(pygame.event.Event(START))
 
 
 if __name__ == "__main__":

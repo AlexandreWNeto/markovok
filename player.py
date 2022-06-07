@@ -28,6 +28,7 @@ class Player:
         self.number_of_dice_remaining = len(self.__set_of_dice.dice_list)
         self.type = type
         self.vertices = vertices
+        self.name_coordinates = (0, 0)
         self.guess = ""
 
     def roll_dice(self):
