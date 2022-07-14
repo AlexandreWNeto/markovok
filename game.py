@@ -14,7 +14,7 @@ from pygame import time
 from pygame import mixer
 
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
-from setup import CLICK_SOUND, DOUBT_SOUND
+from setup import CLICK_SOUND, DICE_ROLL_SOUND, DOUBT_SOUND, WRONG_SOUND, EXACT_CORRECT_SOUND, DOUBT_CORRECT_SOUND
 from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 
 from time import sleep
@@ -67,7 +67,8 @@ class Game:
         self.guess_queue = deque([[0,0], [0,0]])
         self.current_guess = None
         self.current_player = None
-        self.dice_display_mode = "HIDE"
+        self.dice_display_mode = "HIDE_ALL"
+        self.highlight_figure = -1 # dice type to be highlighted at the end of the round
 
     def create_players(self):
         for i in range(self.number_of_players_human):
@@ -130,6 +131,10 @@ class Game:
         else:  # if the player is a computer
             guess = player.make_guess(previous_guess, self.list_players)
             self.current_guess = guess
+        if guess:
+            if guess[1] > 0:
+                self.highlight_figure = guess[1]  # guarda a figura a ser destacada para o caso dos dados serem revelados na próxima rodada
+
         return guess
 
     def shuffle_dice(self):
@@ -137,8 +142,20 @@ class Game:
             player.roll_dice()
 
     def start_new_round(self):
+
+        # verifica se o jogador precisa descartar um dado
+        for player in self.list_players:
+            if player.remove_dice_on_next_round:
+                self.current_player.remove_dice(1) # remove um dado do jogador
+                player.remove_dice_on_next_round = False
+
+        self.highlight_figure = -1 # no início do jogo, nenhum dado deve ser destacado
+
         # cada jogador joga os dados
         self.shuffle_dice()
+        DICE_ROLL_SOUND.play()
+        time.delay(DELAY_BETWEEN_GUESSES)  # set minimum time between player actions
+
 
         self.players_iterator = cycle(self.list_players)
 
@@ -193,25 +210,30 @@ class Game:
         self.dice_display_mode = "REVEAL"  # reveal all dice
         if guess[1] == 0:  # se alguém tiver julgado o palpite anterior exato
             if self.evaluate_guess(guess, previous_guess) == "wrong":
-                self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
+                WRONG_SOUND.play()
+                self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
+               # self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
             else:
-                for _ in range(len(self.list_players) - 1):
+                EXACT_CORRECT_SOUND.play()
+                for _ in range(len(self.list_players) - 1): # remove um dado de todos os outros jogadores na próxima rodada
                     self.current_player = next(self.players_iterator)
-                    self.current_player.remove_dice(1)  # remove um dado de todos os outros jogadores
+                    self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
+
                 print("Julgamento correto.\n")
 
         # se alguém tiver julgado o palpite anterior errado
         else:
-            DOUBT_SOUND.play()
             if self.evaluate_guess(guess, previous_guess) == "wrong":
-                self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
+                WRONG_SOUND.play()
+                self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
                 self.n_wrong_decisions = self.n_wrong_decisions + 1
             else:
+                DOUBT_CORRECT_SOUND.play()
                 for _ in range(len(self.list_players) - 1):
                     self.current_player = next(self.players_iterator)
-                self.current_player.remove_dice(1)  # remove um dado do jogador que fez o palpite anterior
+                self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o palpite anterior
                 print("Julgamento correto.\n")
                 self.n_right_decisions = self.n_right_decisions + 1
         # sleep(1)
@@ -250,9 +272,14 @@ class Game:
             self.current_guess = [-1, -1]
             print(self.current_guess)
             DOUBT_SOUND.play()
+            time.delay(DELAY_BETWEEN_GUESSES)
+            self.dice_display_mode = "REVEAL"
         elif event.type == EXACT_GUESS:
             self.current_guess = [-1, 0]
             print(self.current_guess)
+            DOUBT_SOUND.play()
+            time.delay(DELAY_BETWEEN_GUESSES)
+            self.dice_display_mode = "REVEAL"
         elif event.type == GUESS:
             self.current_guess = [int(game_window.match_menu.guess_amount), int(game_window.match_menu.guess_figure)]
             print(f"Botão clicado. Palpite do usuário: {self.current_guess}")

@@ -30,6 +30,7 @@ class Player:
         self.vertices = vertices
         self.name_coordinates = (0, 0)
         self.guess = ""
+        self.remove_dice_on_next_round = False
 
     def roll_dice(self):
         self.__set_of_dice.roll()

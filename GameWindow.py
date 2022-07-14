@@ -39,7 +39,7 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 165, 0)
 GREEN = (0, 255, 0)
 
-WINNER_FONT = font.SysFont("verdana",100) # font, size
+WINNER_FONT = font.SysFont("verdana",40) # font, size
 PLAYER_FONT = font.SysFont("verdana",20) # font, size
 BUTTON_FONT = font.SysFont("verdana",20) # font, size
 SELECTION_FONT = font.SysFont("verdana",20) # font, size
@@ -65,6 +65,19 @@ DICE_6_IMAGE = transform.scale(
 DICE_HIDDEN_IMAGE = transform.scale(
     image.load(os.path.join("media", "hidden_dice.png")), (DICE_WIDTH, DICE_HEIGHT))
 
+DICE_1_HIGHLIGHT_IMAGE = transform.scale(
+    image.load(os.path.join("media", "1highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
+DICE_2_HIGHLIGHT_IMAGE = transform.scale(
+    image.load(os.path.join("media", "2highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
+DICE_3_HIGHLIGHT_IMAGE = transform.scale(
+    image.load(os.path.join("media", "3highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
+DICE_4_HIGHLIGHT_IMAGE = transform.scale(
+    image.load(os.path.join("media", "4highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
+DICE_5_HIGHLIGHT_IMAGE = transform.scale(
+    image.load(os.path.join("media", "5highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
+DICE_6_HIGHLIGHT_IMAGE = transform.scale(
+    image.load(os.path.join("media", "6highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
+
 
 images_dir = os.path.join("media")
 
@@ -88,19 +101,21 @@ class GameWindow:
 
     def draw_window(self, game):
         self.WIN.blit(BACKGROUND_IMAGE,(0,0))
-        self.draw_players(game.list_players, mode=game.dice_display_mode)
+        self.draw_players(game.list_players, mode=game.dice_display_mode, highlight_figure = game.highlight_figure)
         self.match_menu.draw_action_menu(self.WIN, game.list_players)
         display.update()
 
-    def draw_players(self, players, mode = "HIDE"):
+    def draw_players(self, players, mode = "HIDE", highlight_figure = -1):
         for player in players:
             if mode == "REVEAL":
-                self.draw_dice(player, mode)
+                self.draw_dice(player, mode, highlight_figure=highlight_figure)
+            elif mode == "HIDE_ALL":
+                self.draw_dice(player, "HIDE")
             elif mode == "HIDE":
                 if player.type == "pc":
                     self.draw_dice(player, mode)
                 else:
-                    self.draw_dice(player, "REVEAL")    # only reveal dice from user players
+                    self.draw_dice(player, "REVEAL", highlight_figure = -1)    # only reveal dice from user players
             else:
                 print("Error in function draw_players. Invalid draw mode.")
             self.draw_player_name(player)
@@ -111,7 +126,7 @@ class GameWindow:
         draw_text = PLAYER_FONT.render(player.name , True, WHITE)
         self.WIN.blit(draw_text, (x, y))
 
-    def draw_dice(self, player, mode="REVEAL"):
+    def draw_dice(self, player, mode="REVEAL", highlight_figure = -1):
 
         dice_list = player.get_set_of_dice().dice_list
 
@@ -137,23 +152,47 @@ class GameWindow:
         if mode == "REVEAL":
             for dice in dice_list:
                 if dice == 1:
-                    self.WIN.blit(transform.rotate(DICE_1_IMAGE.convert_alpha(), angle),
-                                  (x_start + offset_x, y_start + offset_y))
+                    if highlight_figure == dice:
+                        self.WIN.blit(transform.rotate(DICE_1_HIGHLIGHT_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
+                    else:
+                        self.WIN.blit(transform.rotate(DICE_1_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
                 if dice == 2:
-                    self.WIN.blit(transform.rotate(DICE_2_IMAGE.convert_alpha(), angle),
-                                  (x_start + offset_x, y_start + offset_y))
+                    if highlight_figure == dice:
+                        self.WIN.blit(transform.rotate(DICE_2_HIGHLIGHT_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
+                    else:
+                        self.WIN.blit(transform.rotate(DICE_2_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
                 if dice == 3:
-                    self.WIN.blit(transform.rotate(DICE_3_IMAGE.convert_alpha(), angle),
-                                  (x_start + offset_x, y_start + offset_y))
+                    if highlight_figure == dice:
+                        self.WIN.blit(transform.rotate(DICE_3_HIGHLIGHT_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
+                    else:
+                        self.WIN.blit(transform.rotate(DICE_3_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
                 if dice == 4:
-                    self.WIN.blit(transform.rotate(DICE_4_IMAGE.convert_alpha(), angle),
-                                  (x_start + offset_x, y_start + offset_y))
+                    if highlight_figure == dice:
+                        self.WIN.blit(transform.rotate(DICE_4_HIGHLIGHT_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
+                    else:
+                        self.WIN.blit(transform.rotate(DICE_4_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
                 if dice == 5:
-                    self.WIN.blit(transform.rotate(DICE_5_IMAGE.convert_alpha(), angle),
-                                  (x_start + offset_x, y_start + offset_y))
+                    if highlight_figure == dice:
+                        self.WIN.blit(transform.rotate(DICE_5_HIGHLIGHT_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
+                    else:
+                        self.WIN.blit(transform.rotate(DICE_5_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
                 if dice == 6:
-                    self.WIN.blit(transform.rotate(DICE_6_IMAGE.convert_alpha(), angle),
-                                  (x_start + offset_x, y_start + offset_y))
+                    if highlight_figure == dice:
+                        self.WIN.blit(transform.rotate(DICE_6_HIGHLIGHT_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
+                    else:
+                        self.WIN.blit(transform.rotate(DICE_6_IMAGE.convert_alpha(), angle),
+                                      (x_start + offset_x, y_start + offset_y))
 
                 offset_x += delta_x
                 offset_y += delta_y
@@ -174,7 +213,11 @@ class GameWindow:
             delta = 0
             for player in reversed(list_of_players):
                 player.vertices = ((1 * WIDTH // 10, HEIGHT // 4 + delta), (6 * WIDTH // 10, HEIGHT // 4 + delta))
+                name_vertices = ((1 * WIDTH // 10, 0.8 * HEIGHT // 4 + 1.3 * delta), (6 * WIDTH // 10, 0.8 * HEIGHT // 4 + 1.3 * delta))
                 delta += 2 * HEIGHT // 4
+                player_name_vertices = (name_vertices[0], name_vertices[1])
+                player.name_coordinates = ((player_name_vertices[0][0] + player_name_vertices[1][0]) / 2,
+                                           (player_name_vertices[0][1] + player_name_vertices[1][1]) / 2)
 
         else:
             # coordinates of the vertices of the polygon on which the dice will be placed
@@ -184,23 +227,21 @@ class GameWindow:
                             for i in range(-1, num_players - 1))
             # coordinates of the vertices of the polygon on which the player names will be placed
             name_vertices = list((
-                               (sin(i / num_players * 2 * pi + pi/num_players) * 1.3 * radius) + center_x,
-                               (cos(i / num_players * 2 * pi + pi/num_players) * 1.3 * radius) + center_y)
+                               (sin(i / num_players * 2 * pi + pi/num_players) * 1.4 * radius) + center_x,
+                               (cos(i / num_players * 2 * pi + pi/num_players) * 1.4 * radius) + center_y)
                             for i in range(-1, num_players - 1))
 
             i = 0
             for player in list_of_players:
                 player.vertices = (vertices[i], vertices[i+1 if i != num_players - 1 else 0])
                 player_name_vertices = (name_vertices[i], name_vertices[i+1 if i != num_players - 1 else 0])
-                print(player_name_vertices)
                 player.name_coordinates = ((player_name_vertices[0][0] + player_name_vertices[1][0]) / 2,
                                            (player_name_vertices[0][1] + player_name_vertices[1][1]) / 2)
-                print(player.name_coordinates)
                 i += 1
 
     def draw_winner(self, text):
         draw_text = WINNER_FONT.render(text, True, WHITE)
-        self.WIN.blit(draw_text, (self.SCREEN_WIDTH / 2 - draw_text.get_width() / 3, self.SCREEN_HEIGHT / 2 - draw_text.get_height() / 3))
+        self.WIN.blit(draw_text, (self.SCREEN_WIDTH / 7 - draw_text.get_width() / 6, self.SCREEN_HEIGHT / 14 - draw_text.get_height() / 4))
 
         display.update()  # updates the screen before the pause
         time.delay(5000)  # pauses the game
@@ -274,7 +315,7 @@ class PlayerActionMenu:
 
         # "X" LETTER
         h_offset = h_offset + 1.5*draw_text.get_width()
-        draw_text = SELECTION_FONT.render("X", True, WHITE)
+        draw_text = SELECTION_FONT.render("x", True, WHITE)
         window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
         h_offset = h_offset + 1.5*draw_text.get_width()
 
