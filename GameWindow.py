@@ -118,7 +118,8 @@ class GameWindow:
                     self.draw_dice(player, "REVEAL", highlight_figure = -1)    # only reveal dice from user players
             else:
                 print("Error in function draw_players. Invalid draw mode.")
-            self.draw_player_name(player)
+            if player.number_of_dice_remaining > 0: # if the player still has dice on their hand
+                self.draw_player_name(player)
 
     def draw_player_name(self, player):
         x = player.name_coordinates[0]

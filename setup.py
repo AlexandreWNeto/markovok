@@ -24,6 +24,6 @@ DICE_ROLL_SOUND = mixer.Sound(path.join("media","dice.mp3"))
 EXACT_CORRECT_SOUND = mixer.Sound(path.join("media","exact-right.ogg"))
 DOUBT_CORRECT_SOUND = mixer.Sound(path.join("media","doubt-right.ogg"))
 WRONG_SOUND = mixer.Sound(path.join("media","wrong.ogg"))
-DELAY_BETWEEN_ROUNDS = 2000 # delay between rounds, in milisseconds
+DELAY_BETWEEN_ROUNDS = 3000 # delay between rounds, in milisseconds
 DELAY_BETWEEN_GUESSES = 1000 # time delay between player guesses, in milisseconds
 

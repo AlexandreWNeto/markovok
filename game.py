@@ -142,12 +142,15 @@ class Game:
             player.roll_dice()
 
     def start_new_round(self):
+        self.players_iterator = cycle(self.list_players)
 
         # verifica se o jogador precisa descartar um dado
-        for player in self.list_players:
+        for _ in self.list_players:
+            player = next(self.players_iterator)
             if player.remove_dice_on_next_round:
-                self.current_player.remove_dice(1) # remove um dado do jogador
+                player.remove_dice(1) # remove um dado do jogador
                 player.remove_dice_on_next_round = False
+
 
         self.highlight_figure = -1 # no início do jogo, nenhum dado deve ser destacado
 
@@ -155,9 +158,6 @@ class Game:
         self.shuffle_dice()
         DICE_ROLL_SOUND.play()
         time.delay(DELAY_BETWEEN_GUESSES)  # set minimum time between player actions
-
-
-        self.players_iterator = cycle(self.list_players)
 
         self.show_table_dice_hidden()
 
@@ -212,14 +212,12 @@ class Game:
             if self.evaluate_guess(guess, previous_guess) == "wrong":
                 WRONG_SOUND.play()
                 self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
-               # self.current_player.remove_dice(1)  # remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
             else:
                 EXACT_CORRECT_SOUND.play()
                 for _ in range(len(self.list_players) - 1): # remove um dado de todos os outros jogadores na próxima rodada
                     self.current_player = next(self.players_iterator)
                     self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
-
                 print("Julgamento correto.\n")
 
         # se alguém tiver julgado o palpite anterior errado
