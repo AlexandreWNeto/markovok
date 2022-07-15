@@ -14,7 +14,7 @@ from pygame import time
 from pygame import mixer
 
 from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_GUESS, GUESS, ACTION, START
-from setup import CLICK_SOUND, DICE_ROLL_SOUND, DOUBT_SOUND, WRONG_SOUND, EXACT_CORRECT_SOUND, DOUBT_CORRECT_SOUND
+from setup import CLICK_SOUND, DICE_ROLL_SOUND, DOUBT_SOUND, WRONG_SOUND, CORRECT_SOUND, INVALID_ACTION_SOUND
 from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 
 from time import sleep
@@ -30,10 +30,13 @@ def check_guess_validity(guess, previous_guess):
         if guess[0] == -1: # se o jogador julgou o palpite anterior como EXATO ou INCORRETO
             return guess
         elif guess == previous_guess:
+            INVALID_ACTION_SOUND.play()
             print("Palpite inválido!")
+
             return None
         # quantidade igual ou menor, mas figura igual ou menor
         elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]:
+            INVALID_ACTION_SOUND.play()
             print("Palpite inválido!")
             return None
         else:
@@ -214,7 +217,7 @@ class Game:
                 self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
                 print("Julgamento incorreto.\n")
             else:
-                EXACT_CORRECT_SOUND.play()
+                CORRECT_SOUND.play()
                 for _ in range(len(self.list_players) - 1): # remove um dado de todos os outros jogadores na próxima rodada
                     self.current_player = next(self.players_iterator)
                     self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o julgamento errado
@@ -228,7 +231,7 @@ class Game:
                 print("Julgamento incorreto.\n")
                 self.n_wrong_decisions = self.n_wrong_decisions + 1
             else:
-                DOUBT_CORRECT_SOUND.play()
+                CORRECT_SOUND.play()
                 for _ in range(len(self.list_players) - 1):
                     self.current_player = next(self.players_iterator)
                 self.current_player.remove_dice_on_next_round = True  # no início da próxima rodada, remove um dado do jogador que fez o palpite anterior
