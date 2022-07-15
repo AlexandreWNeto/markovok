@@ -211,6 +211,8 @@ class Game:
     def do_end_of_round(self, guess, previous_guess):
         self.reveal_table()  # revela os dados da mesa
         self.dice_display_mode = "REVEAL"  # reveal all dice
+        DOUBT_SOUND.play() #plays the sound indicating someone has made a call
+        time.delay(DELAY_BETWEEN_GUESSES)
         if guess[1] == 0:  # se alguém tiver julgado o palpite anterior exato
             if self.evaluate_guess(guess, previous_guess) == "wrong":
                 WRONG_SOUND.play()
@@ -272,14 +274,10 @@ class Game:
         if event.type == DOUBT:
             self.current_guess = [-1, -1]
             print(self.current_guess)
-            DOUBT_SOUND.play()
-            time.delay(DELAY_BETWEEN_GUESSES)
             self.dice_display_mode = "REVEAL"
         elif event.type == EXACT_GUESS:
             self.current_guess = [-1, 0]
             print(self.current_guess)
-            DOUBT_SOUND.play()
-            time.delay(DELAY_BETWEEN_GUESSES)
             self.dice_display_mode = "REVEAL"
         elif event.type == GUESS:
             self.current_guess = [int(game_window.match_menu.guess_amount), int(game_window.match_menu.guess_figure)]
