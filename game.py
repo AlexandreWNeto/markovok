@@ -203,7 +203,7 @@ class Game:
         if guess and (guess[0] <= 0):  # se alguém tiver julgado o palpite anterior incorreto/exato
             self.do_end_of_round(guess, previous_guess)
             return ()
-        print(self.current_player.name, self.current_guess)
+
         # if guess:
         #   self.advance_to_next_player()  # move the turn to the next player
         return ()
@@ -272,13 +272,20 @@ class Game:
 
     def handle_event(self, event, game_window):
         if event.type == DOUBT:
-            self.current_guess = [-1, -1]
-            print(self.current_guess)
-            self.dice_display_mode = "REVEAL"
+            if self.guess_queue[1] != [0,0]:  # if a player has made a guess already
+                self.current_guess = [-1, -1]
+                self.dice_display_mode = "REVEAL"
+            else:   # cannot doubt if no player has guessed yet
+                INVALID_ACTION_SOUND.play()
+                print("Ação inválida!")
+
         elif event.type == EXACT_GUESS:
-            self.current_guess = [-1, 0]
-            print(self.current_guess)
-            self.dice_display_mode = "REVEAL"
+            if self.guess_queue[1] != [0,0]:  # if a player has made a guess already
+                self.current_guess = [-1, 0]
+                self.dice_display_mode = "REVEAL"
+            else: # cannot say the guess is exact if no player has guessed yet
+                INVALID_ACTION_SOUND.play()
+                print("Ação inválida!")
         elif event.type == GUESS:
             self.current_guess = [int(game_window.match_menu.guess_amount), int(game_window.match_menu.guess_figure)]
             print(f"Botão clicado. Palpite do usuário: {self.current_guess}")
