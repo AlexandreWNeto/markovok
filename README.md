@@ -3,7 +3,7 @@ A Liar's dice game.
 
 ## Rules of the game
 
-The main goal of the game is to be the last player with dice in your hands.
+The main goal of the game is to be the last player with dice in their hands.
 You can make your opponents lose dice by:
 + catching an opponent in a bluff;
 + catching your opponent making an exact guess.
