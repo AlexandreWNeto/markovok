@@ -46,19 +46,19 @@ However, the following guess would be considered to be **exact**:
 ```
 
 Alternatively, if a player wants to a make another guess, the following rules apply:
-+ the number in the new guess must be higher than the number on the previous guess
++ the amount in the new guess must be higher than the number on the previous guess
 **or**
-+ the figure in the new guess must be higher than the figure on the previous guess
-
++ the figure in the new guess must be higher than the figure on the previous guess, provided that the amount in the new guess is at least half (rounded up) of the amount of the previous guess
 
 ```
 For example:
 - previous guess: 4 x four
 - valid guess: 5 x four
 - valid guess: 6 x four
-- invalid guess: 4 x four
-- invalid guess: 4 x 3
-- valid guess: 1 x 5
+- invalid guess: 4 x four (guess is equal to the previous guess)
+- invalid guess: 4 x 3 (figure is lower than the figrue on the previous guess)
+- valid guess: 2 x 5
+- invalid guess: 1 x 5 (amount is less than half (rounded up) the amount of the previous guess)
 - valid guess: 5 x 3
 ```
 
