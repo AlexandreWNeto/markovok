@@ -4,7 +4,7 @@ Esta classe define um jogador e suas ações
 """
 
 from dice import Dice
-from math import factorial
+from math import factorial, ceil
 from itertools import islice
 from random import choices
 
@@ -16,6 +16,19 @@ def count_dice_in_table(players_in_table=[]):
     for player in players_in_table:
         count = count + player.number_of_dice_remaining  # count the number of dice each other player has on their hands
     return (count)
+
+def is_guess_valid(guess, previous_guess):
+    if guess and previous_guess != [0, 0]:
+        if guess == previous_guess:
+            return False
+        # quantidade igual ou menor, mas figura igual ou menor
+        elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]:
+            return False
+        # figura maior, mas quantidade menor do que a metade (ou metade inteira + 1 para números ímpares) do palpite anterior
+        elif guess[1] > previous_guess[1] and guess[0] < ceil(previous_guess[0] / 2):
+            return False
+        else:
+            return True
 
 
 class Player:
@@ -85,8 +98,7 @@ class Player:
         guess_amount = guess[0]  # numero de dados no palpite (de 1 ao máximo de dados possíveis)
         guess_figure = guess[1]  # tipo de dado no palpite (de 1 a 6)
 
-        n_guess_at_hand = self.count_figures_on_hand(
-            guess_figure)  # numero de dados com o valor do palpite na mão do jogador
+        n_guess_at_hand = self.count_figures_on_hand(guess_figure)  # numero de dados com o valor do palpite na mão do jogador
         probability = 0
         if tipo == "<":
             # P(x<k)
@@ -103,8 +115,7 @@ class Player:
             return (probability)
         elif tipo == "<=":
             # P(x<=k)
-            if (
-                    guess_amount <= n_guess_at_hand):  # se o jogador possuir mais (ou a mesma quantidade de) dados com a figura escolhida do que o número no palpite
+            if (guess_amount <= n_guess_at_hand):  # se o jogador possuir mais (ou a mesma quantidade de) dados com a figura escolhida do que o número no palpite
                 probability = 1
             elif ((n_other_dice < guess_amount) and (
                     n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
@@ -140,11 +151,9 @@ class Player:
             return (1 - probability)
         elif tipo == "=":
             # P(x=k)
-            if (
-                    guess_amount < n_guess_at_hand):  # se o jogador possuir mais dados com a figura escolhida do que o número no palpite
+            if (guess_amount < n_guess_at_hand):  # se o jogador possuir mais dados com a figura escolhida do que o número no palpite
                 probability = 0
-            elif ((n_other_dice < guess_amount) and (
-                    n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
+            elif ((n_other_dice < guess_amount) and (n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
                 probability = 0
             elif (guess_amount > n_dice):  # se o número de dados no palpite for maior do que o número de dados na mesa
                 probability = 0
@@ -216,7 +225,7 @@ class Player:
         # busca exaustiva pelo maior palpite com maior probabilidade de acerto
         # método de cálculo da probabilidade de acerto dos palpites: binomial (Bernoulli)
         if (p_previous_guess_exact >= p_previous_guess_wrong):
-            p_best_guess = p_previous_guess_exact ** (1/4)
+            p_best_guess = p_previous_guess_exact
             best_guess = [-1, 0]
         else:
             p_best_guess = p_previous_guess_wrong
@@ -224,9 +233,14 @@ class Player:
 
         self.possible_guesses[tuple(best_guess)] = p_best_guess  # add the guess to the dictionary of guesses
 
-        new_guess = self.min_next_guess(previous_guess)  # determine o mínimo palpite próximo
+        new_guess = self.min_next_guess([1,1])  # determine o mínimo palpite válido, começando do menor palpite possível
 
         while (True):  # busca exaustiva pelo palpite com maior probabilidade de sucesso
+
+            if not is_guess_valid(new_guess, previous_guess): # caso o palpite próximo não seja válido
+                new_guess = self.min_next_guess(new_guess)  # pule este palpite
+                continue # pule o palpite inválido e avalie o próximo palplite
+
             new_guess_amount = new_guess[0]
 
             if new_guess_amount > count_dice_in_table(players_in_table) - self.number_of_dice_remaining:
@@ -242,6 +256,8 @@ class Player:
                 p_best_guess = p_new_guess
 
             new_guess = self.min_next_guess(new_guess)  # determine o mínimo palpite próximo
+
+
             new_guess_amount = new_guess[0]
             if (new_guess_amount > count_dice_in_table(players_in_table) - self.number_of_dice_remaining):
                 break
@@ -251,11 +267,11 @@ class Player:
         # ordena o dicionário de possíveis ações por ordem decrescente de probabilidade
         self.possible_guesses = dict(sorted(self.possible_guesses.items(), key=lambda a:a[1], reverse = True))
         # retira uma amostra das possíveis ações
-        self.possible_guesses = dict(islice(self.possible_guesses.items(), min(5,len(self.possible_guesses))))
+        self.possible_guesses = dict(islice(self.possible_guesses.items(), min(10,len(self.possible_guesses))))
 
         #pondera as probabilidades do conjunto amostral; as escolhas de maior probabilidade ganham um peso maior
         for key, probability in self.possible_guesses.items():
-            self.possible_guesses[key] = probability ** 2
+            self.possible_guesses[key] = probability
         print(self.possible_guesses)
         #sorteia uma ação dentre a amostra de ações
         # ações com maior probabilidade de acerto tem peso maior no sorteio
@@ -282,3 +298,5 @@ class Player:
               f"\t{p_best_guess}\n")"""
         print(f"{self.name}:\tPalpite: {guess_amount} dados mostrando o número {guess_figure}")
         return (chosen_guess)
+
+
