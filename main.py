@@ -34,16 +34,18 @@ def main():
     while run:
         clock.tick(FPS)
 
+        if game.number_of_remaining_active_players == 1:  # se apenas um jogador tiver sobrado
+            winning_player = game.list_players[0]
+            winner_text = winning_player.get_player_name() + " wins!"
+            print(f"O jogador vencedor é {winning_player.get_player_name()}!")
+            game_window.draw_winner(winner_text)  # SOMEONE WON
+            break
+
         for event in pygame.event.get():  # event QUEUE
             handle_event(game, event)
         game_window.draw_window(game)
 
-        if game.number_of_remaining_active_players == 1:  # se apenas um jogador tiver sobrado
-            winning_player = game.list_players[0]
-            winner_text = "O jogador vencedor é " + winning_player.get_player_name()
-            print(f"O jogador vencedor é {winning_player.get_player_name()}!")
-            game_window.draw_winner(winner_text)  # SOMEONE WON
-            run = False
+
 
 
 def evaluate_game(game):

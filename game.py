@@ -17,6 +17,8 @@ from setup import START_MATCH, END_MATCH, START_ROUND, END_ROUND, DOUBT, EXACT_G
 from setup import CLICK_SOUND, DICE_ROLL_SOUND, DOUBT_SOUND, WRONG_SOUND, CORRECT_SOUND, INVALID_ACTION_SOUND
 from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 
+from math import ceil
+
 from time import sleep
 
 
@@ -36,6 +38,11 @@ def check_guess_validity(guess, previous_guess):
             return None
         # quantidade igual ou menor, mas figura igual ou menor
         elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]:
+            INVALID_ACTION_SOUND.play()
+            print("Palpite inválido!")
+            return None
+        # figura maior, mas quantidade menor do que a metade (ou metade inteira + 1 para números ímpares) do palpite anterior
+        elif guess[1] > previous_guess[1] and guess[0] < ceil(previous_guess[0]/2):
             INVALID_ACTION_SOUND.play()
             print("Palpite inválido!")
             return None
@@ -91,8 +98,9 @@ class Game:
         self.list_players = list(self.dict_players.values())
 
     def remove_player_from_list(self, player):
-        self.list_players.remove(player)
-        self.number_of_remaining_active_players = len(self.list_players)
+        if player in self.list_players:
+            self.list_players.remove(player)
+            self.number_of_remaining_active_players = len(self.list_players)
 
     def reveal_table(self):
         for player in self.list_players:
@@ -145,15 +153,21 @@ class Game:
             player.roll_dice()
 
     def start_new_round(self):
-        self.players_iterator = cycle(self.list_players)
-
         # verifica se o jogador precisa descartar um dado
-        for _ in self.list_players:
-            player = next(self.players_iterator)
+        l = self.list_players.copy()
+        for player in l:
             if player.remove_dice_on_next_round:
                 player.remove_dice(1) # remove um dado do jogador
                 player.remove_dice_on_next_round = False
+                print("Removeu um dado do jogador:", player.name)
+            if player.number_of_dice_remaining == 0:
+                print(player.name, " removido do jogo")
+                self.remove_player_from_list(player)
 
+        self.players_iterator = cycle(self.list_players)
+
+        if self.number_of_remaining_active_players == 1:  # se apenas um jogador tiver sobrado
+            return()
 
         self.highlight_figure = -1 # no início do jogo, nenhum dado deve ser destacado
 
@@ -166,7 +180,8 @@ class Game:
 
         # TODO: o jogador que começa deve ser aquele que fez o penúltimo palpite
         # embaralha a lista de jogadores
-        for _ in range(secrets.choice(list(range(len(self.list_players))))):
+        for _ in range(secrets.choice(list(range(len(self.list_players))))+1):
+            print("sorteando o primeiro jogador...")
             self.current_player = next(self.players_iterator)
 
         self.dice_display_mode = "HIDE"  # hide the non-user dice
@@ -244,8 +259,6 @@ class Game:
         print("--------------------\n")
         # sleep(1.5)
 
-        if self.current_player.number_of_dice_remaining == 0:
-            self.remove_player_from_list(self.current_player)
         self.has_started = False
         self.guess_queue = deque([[0,0], [0,0]])  # clear the guess queue for the next round
         # sleep(1)
@@ -292,16 +305,23 @@ class Game:
         elif event.type == ACTION:
             if self.current_player and self.current_guess:
                 print(self.current_player.name, self.current_guess)
-            self.advance_to_next_player()  # move the turn to the next player
-            CLICK_SOUND.play()
+                self.advance_to_next_player()  # move the turn to the next player
+                CLICK_SOUND.play()
 
     def advance_to_next_player(self):
+        print("jogador mudou de ", self.current_player.name, end=" ")
         self.current_player = next(self.players_iterator)  # é a vez de jogar do próximo jogador
+        print("para ", self.current_player.name)
 
         if self.current_player.type == "user":  # só mostra os dados dos jogadores que são pessoas, mas não dos jogadores que são controlados pelo computador
             self.current_player.print_summary()
             pass
 
         while self.current_player.number_of_dice_remaining == 0:  # se um jogador tiver perdido todos os dados
+            print(self.list_players)
+            print(list(self.players_iterator))
+            print("pulou o jogador ", self.current_player.name, end=" ")
             self.current_player = next(self.players_iterator)  # passa para o próximo jogador
+            print("para ", self.current_player.name)
+
 

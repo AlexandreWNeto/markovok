@@ -4,7 +4,7 @@ from os import path
 
 FPS = 60
 
-MAX_NUM_OF_DICE = 5
+MAX_NUM_OF_DICE = 2
 NUM_PC_PLAYERS = 4
 NUM_USER_PLAYERS = 1
 # USER EVENTS
