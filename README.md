@@ -1,4 +1,4 @@
-# markovok
+# markovok 🥕
 A Liar's dice game.
 
 ## Rules of the game
