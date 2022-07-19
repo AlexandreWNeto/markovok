@@ -182,7 +182,6 @@ class Player:
             new_guess = self.make_bernoulli_guess(previous_guess, players_in_table)
             self.guess = " ".join(str(_) for _ in new_guess)
             return (new_guess)
-
         return ()
 
     def make_bernoulli_guess(self, previous_guess, players_in_table=[]):
