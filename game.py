@@ -34,7 +34,6 @@ def check_guess_validity(guess, previous_guess):
         elif guess == previous_guess:
             INVALID_ACTION_SOUND.play()
             print("Palpite inválido!")
-
             return None
         # quantidade igual ou menor, mas figura igual ou menor
         elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]:
