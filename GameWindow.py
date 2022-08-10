@@ -78,6 +78,11 @@ DICE_5_HIGHLIGHT_IMAGE = transform.scale(
 DICE_6_HIGHLIGHT_IMAGE = transform.scale(
     image.load(os.path.join("media", "6highlight.png")), (DICE_WIDTH, DICE_HEIGHT))
 
+BUTTON_PLUS_IMAGE = transform.scale(
+    image.load(os.path.join("media", "plus.png")), (DICE_WIDTH/2, DICE_HEIGHT/2))
+
+BUTTON_MINUS_IMAGE = transform.scale(
+    image.load(os.path.join("media", "minus.png")), (DICE_WIDTH/2, DICE_HEIGHT/2))
 
 images_dir = os.path.join("media")
 
@@ -301,43 +306,57 @@ class PlayerActionMenu:
                     window.blit(draw_text, (self.x, self.y - draw_text.get_height() / 2 + y_offset))
                     y_offset = y_offset + draw_text.get_height() * 2
 
-        y_offset = y_offset - 20
+        y_offset = y_offset
         h_offset = 0
 
         # GUESS AMOUNT
-        button_plus_guess_number = Button(x=self.x, y= self.y + y_offset, text = "+", font = SELECTION_FONT, txt_colour = BLACK, name = "increase_guess_amount_button")
-        button_plus_guess_number.draw_button(window, border_colour = ORANGE, border_thickness = 1)
+        button_plus_guess_number = Button(x=self.x, y= self.y + y_offset,
+                                          width = BUTTON_PLUS_IMAGE.get_width(),
+                                          height =  BUTTON_PLUS_IMAGE.get_height(),
+                                          image = BUTTON_PLUS_IMAGE,
+                                          name = "increase_guess_amount_button")
+        button_plus_guess_number.draw_button(window)
         draw_text = SELECTION_FONT.render(self.guess_amount, True, WHITE)
         h_offset = h_offset + 2*draw_text.get_width()
-        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        h_offset = h_offset + 2*draw_text.get_width()
-        button_minus_guess_number = Button(x=self.x + h_offset, y= self.y + y_offset, text = "-", font = SELECTION_FONT, name = "decrease_guess_amount_button")
-        button_minus_guess_number.draw_button(window, border_colour = ORANGE, border_thickness = 1)
+        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y-5))
+        h_offset = h_offset + 1.5*draw_text.get_width()
+        button_minus_guess_number = Button(x=self.x + h_offset, y=self.y + y_offset,
+                                          width=BUTTON_MINUS_IMAGE.get_width(),
+                                          height=BUTTON_MINUS_IMAGE.get_height(),
+                                          image=BUTTON_MINUS_IMAGE,
+                                          name="decrease_guess_amount_button")
+        button_minus_guess_number.draw_button(window)
 
         # "X" LETTER
-        h_offset = h_offset + 1.5*draw_text.get_width()
+        h_offset = h_offset + 2*draw_text.get_width()
         draw_text = SELECTION_FONT.render("x", True, WHITE)
-        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
-        h_offset = h_offset + 1.5*draw_text.get_width()
+        window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y - 5))
+        h_offset = h_offset + 2*draw_text.get_width()
 
         # GUESS FIGURE
-        button_plus_guess_figure = Button(x=self.x + h_offset, y= self.y + y_offset, text = "+", font = SELECTION_FONT, txt_colour = BLACK, name = "increase_guess_figure_button")
-        button_plus_guess_figure.draw_button(window, border_colour = ORANGE, border_thickness = 1)
-        #draw_text = SELECTION_FONT.render(self.guess_figure, True, WHITE)
-        #h_offset = h_offset + 2 * draw_text.get_width()
-        #window.blit(draw_text, (button_plus_guess_number.x + h_offset, button_plus_guess_number.y))
+        button_plus_guess_figure = Button(x=self.x + h_offset, y= self.y + y_offset,
+                                          width = BUTTON_PLUS_IMAGE.get_width(),
+                                          height =  BUTTON_PLUS_IMAGE.get_height(),
+                                          image = BUTTON_PLUS_IMAGE,
+                                          name = "increase_guess_figure_button")
+        button_plus_guess_figure.draw_button(window)
 
         dice_height = draw_text.get_height()
         h_offset = h_offset + dice_height
 
-        self.draw_dice(window, self.guess_figure, dice_height, button_plus_guess_number.x + h_offset, button_plus_guess_number.y)
+        self.draw_dice(window, self.guess_figure, dice_height, button_plus_guess_number.x + h_offset + 2, button_plus_guess_number.y - 5)
 
         h_offset = h_offset + 1.5*dice_height
 
-        button_minus_guess_figure = Button(x=self.x + h_offset, y=self.y + y_offset, text="-", font=SELECTION_FONT, txt_colour=BLACK, name = "decrease_guess_figure_button")
-        button_minus_guess_figure.draw_button(window, border_colour=ORANGE, border_thickness=1)
+        button_minus_guess_figure = Button(x=self.x + h_offset, y= self.y + y_offset,
+                                          width = BUTTON_MINUS_IMAGE.get_width(),
+                                          height =  BUTTON_MINUS_IMAGE.get_height(),
+                                          image = BUTTON_MINUS_IMAGE,
+                                          name = "decrease_guess_figure_button")
+        button_minus_guess_figure.draw_button(window)
 
-        y_offset = y_offset + button_plus_guess_number.height * 2
+
+        y_offset = y_offset + dice_height * 2.5
 
         # create and draw buttons
         # MAKE GUESS button
@@ -353,13 +372,13 @@ class PlayerActionMenu:
         y_offset = y_offset + button_exact.height * 2
         button_doubt = Button(x=self.x, y= self.y + y_offset, text="Doubt it!", font=BUTTON_FONT, bgn_colour=WHITE, name = "doubt_button")
         button_doubt.draw_button(window, border_colour = ORANGE, border_thickness = 4)
-
+        '''
         # START button (Debug)
         y_offset = y_offset + button_doubt.height * 2
         start_button = Button(x=self.x, y= self.y + y_offset, text="START!", font=BUTTON_FONT, bgn_colour=WHITE, name = "start_button")
         start_button.draw_button(window, border_colour = GREEN, border_thickness = 4)
-
-        self.buttons = [button_make_guess, button_exact, button_doubt, start_button,
+        '''
+        self.buttons = [button_make_guess, button_exact, button_doubt,
                         button_plus_guess_number, button_minus_guess_number,
                         button_plus_guess_figure, button_minus_guess_figure]
 
@@ -380,7 +399,7 @@ class Button:
         self.height = height
         self.name = name
 
-    def draw_button(self, win, border_colour, border_thickness = 2):
+    def draw_button(self, win, border_colour = None, border_thickness = 2):
         if self.text:
             draw_text = self.font.render(self.text, True, self.txt_colour)
             self.width = draw_text.get_width() * 1
@@ -398,7 +417,9 @@ class Button:
                           self.y + (self.height/2 - draw_text.get_height()/2)))
 
         elif self.image:
-            self.WIN.blit(transform.scale(image.convert_alpha(),self.width,self.height),(self.x, self.y))
+            win.blit(transform.scale(self.image, (self.width, self.height)), (self.x, self.y))
+
+
 
     def is_mouse_over_button(self, pos):
         if self.x < pos[0] < self.x + self.width:

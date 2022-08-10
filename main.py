@@ -30,6 +30,7 @@ def main():
     game_window.set_player_coordinates(game.list_players)
 
     clock = pygame.time.Clock()
+    pygame.event.post(pygame.event.Event(START))
     run = True
     while run:
         clock.tick(FPS)
