@@ -18,6 +18,10 @@ from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 game_window = GameWindow(MAX_NUM_OF_DICE)
 game_window.set_screen()
 
+
+icon = pygame.image.load(os.path.join("media", "hidden_dice.jpg"))
+pygame.display.set_icon(icon)
+
 width = game_window.WIN.get_width()
 height = game_window.WIN.get_height()
 
