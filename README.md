@@ -1,6 +1,15 @@
 # markovok🥕
 A Liar's dice game.
 
+# How to access the game
+
+1- Download the executable files from the .exe folder.
+2- Download the media folder.
+3- Extract the compressed files into a single executable file
+4 -Run the executable file markovok.exe.
+
+Note: please save the executable file and the media folder to the same folder.
+
 ## Rules of the game
 
 The main goal of the game is to be the last player with dice in their hands.
