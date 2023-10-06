@@ -10,6 +10,8 @@ A Liar's dice game.
 
 Note: please save the executable file and the media folder to the same folder.
 
+![image](https://github.com/AlexandreWNeto/markovok/assets/29670261/afd086d1-dd83-49e0-bd71-2000a279aca2)
+
 ## Rules of the game
 
 The main goal of the game is to be the last player with dice in their hands.
