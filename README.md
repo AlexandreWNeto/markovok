@@ -3,12 +3,10 @@ A Liar's dice game.
 
 # How to access the game
 
-1. Download the executable files from the .exe folder.
-2. Download the media folder.
-3. Extract the compressed files into a single executable file
-4. Run the executable file markovok.exe.
+1. Download the _dist_ folder.
+3. Run the executable file Markovok.exe.
 
-Note: please save the executable file and the media folder to the same folder.
+Note: please save the executable file and the media folder on the same folder.
 
 ![image](https://github.com/AlexandreWNeto/markovok/assets/29670261/afd086d1-dd83-49e0-bd71-2000a279aca2)
 
