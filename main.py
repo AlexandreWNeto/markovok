@@ -18,7 +18,6 @@ from setup import DELAY_BETWEEN_GUESSES, DELAY_BETWEEN_ROUNDS
 game_window = GameWindow(MAX_NUM_OF_DICE)
 game_window.set_screen()
 
-
 icon = pygame.image.load(os.path.join("media", "hidden_dice.jpg"))
 pygame.display.set_icon(icon)
 
@@ -51,16 +50,17 @@ def main():
         game_window.draw_window(game)
 
 
-
-
 def evaluate_game(game):
     a_right = np.array([])
     a_wrong = np.array([])
     a_right = np.append(a_right, game.n_right_decisions / (game.n_wrong_decisions + game.n_right_decisions))
     a_wrong = np.append(a_wrong, game.n_wrong_decisions / (game.n_wrong_decisions + game.n_right_decisions))
     print(f"Number of rounds:\t{game.n_wrong_decisions + game.n_right_decisions}")
-    print(f"Percentage of correct decisions:\t{game.n_right_decisions / (game.n_wrong_decisions + game.n_right_decisions):.2f}")
-    print(f"Percentage of wrong decisions:\t{game.n_wrong_decisions / (game.n_wrong_decisions + game.n_right_decisions):.2f}")
+    print(f"Percentage of correct decisions:"
+          f"\t{game.n_right_decisions / (game.n_wrong_decisions + game.n_right_decisions):.2f}")
+    print(f"Percentage of wrong decisions:"
+          f"\t{game.n_wrong_decisions / (game.n_wrong_decisions + game.n_right_decisions):.2f}")
+
     # del game
     print(f"Média de acertos:\t{np.average(a_right)}\tDesvio padrão:{np.std(a_right)}")
     print(f"Média de erros:\t{np.average(a_wrong)}\tDesvio padrão:{np.std(a_wrong)}")

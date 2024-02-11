@@ -18,12 +18,11 @@ GUESS = USEREVENT + 7
 ACTION = USEREVENT + 8
 START = USEREVENT + 9
 mixer.init()
-CLICK_SOUND = mixer.Sound(path.join("media","click.mp3"))
-DOUBT_SOUND = mixer.Sound(path.join("media","doubt.ogg"))
-DICE_ROLL_SOUND = mixer.Sound(path.join("media","dice.mp3"))
-CORRECT_SOUND = mixer.Sound(path.join("media","correct.ogg"))
-WRONG_SOUND = mixer.Sound(path.join("media","wrong.ogg"))
-INVALID_ACTION_SOUND = mixer.Sound(path.join("media","invalid_action.mp3"))
-DELAY_BETWEEN_ROUNDS = 3000 # delay between rounds, in milisseconds
-DELAY_BETWEEN_GUESSES = 1000 # time delay between player guesses, in milisseconds
-
+CLICK_SOUND = mixer.Sound(path.join("media", "click.mp3"))
+DOUBT_SOUND = mixer.Sound(path.join("media", "doubt.ogg"))
+DICE_ROLL_SOUND = mixer.Sound(path.join("media", "dice.mp3"))
+CORRECT_SOUND = mixer.Sound(path.join("media", "correct.ogg"))
+WRONG_SOUND = mixer.Sound(path.join("media", "wrong.ogg"))
+INVALID_ACTION_SOUND = mixer.Sound(path.join("media", "invalid_action.mp3"))
+DELAY_BETWEEN_ROUNDS = 3000  # delay between rounds, in milliseconds
+DELAY_BETWEEN_GUESSES = 1000  # time delay between player guesses, in milliseconds

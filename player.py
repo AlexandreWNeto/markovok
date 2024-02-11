@@ -8,14 +8,16 @@ from math import factorial, ceil
 from itertools import islice
 from random import choices
 
-def count_dice_in_table(players_in_table=[]):
-    if players_in_table == []:
+
+def count_dice_in_table(players_in_table=None):
+    if players_in_table is None:
         print("Error - list of players is empty")
         return ()
     count = 0
     for player in players_in_table:
         count = count + player.number_of_dice_remaining  # count the number of dice each other player has on their hands
     return (count)
+
 
 def is_guess_valid(guess, previous_guess):
     if guess and previous_guess != [0, 0]:
@@ -24,7 +26,8 @@ def is_guess_valid(guess, previous_guess):
         # quantidade igual ou menor, mas figura igual ou menor
         elif guess[0] <= previous_guess[0] and guess[1] <= previous_guess[1]:
             return False
-        # figura maior, mas quantidade menor do que a metade (ou metade inteira + 1 para números ímpares) do palpite anterior
+        # figura maior, mas quantidade menor do que a metade
+        # (ou metade inteira + 1 para números ímpares) do palpite anterior
         elif guess[1] > previous_guess[1] and guess[0] < ceil(previous_guess[0] / 2):
             return False
         else:
@@ -61,9 +64,9 @@ class Player:
 
     def remove_dice(self, number_of_dice_to_remove=1):
         for _ in range(number_of_dice_to_remove):
-            self.__set_of_dice.remove_dice()  # remove a dice from the set of dice
+            self.__set_of_dice.remove_dice()  # remove a die from the set of dice
         self.number_of_dice_remaining = len(
-            self.__set_of_dice.dice_list)  # update the number of dice after removing a dice
+            self.__set_of_dice.dice_list)  # update the number of dice after removing a die
 
     def get_player_name(self):
         return self.name
@@ -79,10 +82,16 @@ class Player:
                 count = count + 1
         return (count)
 
-    # fórmula de bernoulli - calcula a probabilidade de k ocorrências em n ensaios independentes
-    def bernoulli(self, k, n):
-        return ((1 / 6) ** k) * ((5 / 6) ** (n - k)) * factorial(n) / (factorial(k) * factorial(
-            n - k))  # TODO: generalizar fórmula para dados com um número de lados qualquer
+    @staticmethod
+    def bernoulli(k, n):
+        """
+        fórmula de bernoulli - calcula a probabilidade de k ocorrências em n ensaios independentes
+        :param k: número de ocorrências (i.e., faces dos dados mostrando um determinado número)
+        :param n: número de ensaios (i.e., número de dados jogados)
+        :return: a probabilidade de k ocorrências em n ensaios independentes
+        """
+        # TODO: generalizar fórmula para dados com um número de lados qualquer
+        return ((1 / 6) ** k) * ((5 / 6) ** (n - k)) * factorial(n) / (factorial(k) * factorial(n - k))
 
     # calcula a probabilidade do palpite ser verdadeiro baseando-se na fórumula de Bernoulli
     def calculate_probability(self, guess=None, players_in_table=None, tipo="<="):
@@ -98,78 +107,99 @@ class Player:
         guess_amount = guess[0]  # numero de dados no palpite (de 1 ao máximo de dados possíveis)
         guess_figure = guess[1]  # tipo de dado no palpite (de 1 a 6)
 
-        n_guess_at_hand = self.count_figures_on_hand(guess_figure)  # numero de dados com o valor do palpite na mão do jogador
+        # numero de dados com o valor do palpite na mão do jogador
+        n_guess_at_hand = self.count_figures_on_hand(guess_figure)
         probability = 0
         if tipo == "<":
             # P(x<k)
-            # se o jogador possuir mais (ou a mesma quantidade de) dados com a figura escolhida do que o número no palpite
+            # se o jogador possuir mais (ou a mesma quantidade de) dados
+            # com a figura escolhida do que o número no palpite
             if guess_amount <= n_guess_at_hand:
                 probability = 0
-            # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
-            elif (n_other_dice < guess_amount) and ( n_guess_at_hand == 0):
+            # se o jogador não tiver nenhum dado com a figura do palpite
+            # e número dos outros dados for menor do que a quantidade do palpite
+            elif (n_other_dice < guess_amount) and (n_guess_at_hand == 0):
                 probability = 0
             else:
                 for i in range(0, guess_amount - n_guess_at_hand):
                     probability = probability + self.bernoulli(i, n_other_dice)
-            # print(f"{self.__name}:\tProbabilidade de haver menos de {guess_amount} dado(s) mostrando o número {guess_figure}:\t{probability}")
+            # print(f"{self.__name}:\tProbabilidade de haver menos de {guess_amount} dado(s)
+            # mostrando o número {guess_figure}:\t{probability}")
             return (probability)
         elif tipo == "<=":
             # P(x<=k)
-            if (guess_amount <= n_guess_at_hand):  # se o jogador possuir mais (ou a mesma quantidade de) dados com a figura escolhida do que o número no palpite
+            # se o jogador possuir mais (ou a mesma quantidade de) dados
+            # com a figura escolhida do que o número no palpite
+            if (guess_amount <= n_guess_at_hand):
                 probability = 1
-            elif ((n_other_dice < guess_amount) and (
-                    n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
+            # se o jogador não tiver nenhum dado com a figura do palpite
+            # e número dos outros dados for menor do que a quantidade do palpite
+            elif ((n_other_dice < guess_amount) and (n_guess_at_hand == 0)):
                 probability = 1
             else:
                 for i in range(0, guess_amount - n_guess_at_hand + 1):
                     probability = probability + self.bernoulli(i, n_other_dice)
-            # print(f"{self.__name}:\tProbabilidade de haver menos de (ou exatamente) {guess_amount} dado(s) mostrando o número {guess_figure}:\t{probability}")
+            # print(f"{self.__name}:\tProbabilidade de haver menos de (ou exatamente) {guess_amount} dado(s)
+            # mostrando o número {guess_figure}:\t{probability}")
             return (probability)
         elif tipo == ">":
             # P(x>k)
-            if (guess_amount > n_dice):  # se o número de figuras no palpite for maior do que o número de dados na mesa
+            # se o número de figuras no palpite for maior do que o número de dados na mesa
+            if (guess_amount > n_dice):
                 probability = 0
+
+            # se o jogador não tiver nenhum dado com a figura do palpite
+            # e número dos outros dados for menor do que a quantidade do palpite
             elif ((n_other_dice < guess_amount) and (
-                    n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
+                    n_guess_at_hand == 0)):
                 probability = 0
             else:
                 for i in range(0, guess_amount - n_guess_at_hand + 1):
                     probability = probability + self.bernoulli(i, n_other_dice)
-            # print(f"{self.__name}:\tProbabilidade de haver mais de {guess_amount} dado(s) mostrando o número {guess_figure}:\t{1-probability}")
+            # print(f"{self.__name}:\tProbabilidade de haver mais de {guess_amount} dado(s)
+            # mostrando o número {guess_figure}:\t{1-probability}")
             return (1 - probability)
         elif tipo == ">=":
             # P(x>=k)
-            if (guess_amount > n_dice):  # se o número de figuras no palpite for maior do que o número de dados na mesa
+            # se o número de figuras no palpite for maior do que o número de dados na mesa
+            if (guess_amount > n_dice):
                 probability = 0
-            elif ((n_other_dice < guess_amount) and (
-                    n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
+            # se o jogador não tiver nenhum dado com a figura do palpite
+            # e número dos outros dados for menor do que a quantidade do palpite
+            elif ((n_other_dice < guess_amount) and (n_guess_at_hand == 0)):
                 probability = 0
             else:
                 for i in range(0, guess_amount - n_guess_at_hand):
                     probability = probability + self.bernoulli(i, n_other_dice)
-            # print(f"{self.__name}:\tProbabilidade de haver mais de (ou exatamente) {guess_amount} dado(s) mostrando o número {guess_figure}:\t{1-probability}")
+            # print(f"{self.__name}:\tProbabilidade de haver mais de (ou exatamente) {guess_amount} dado(s)
+            # mostrando o número {guess_figure}:\t{1-probability}")
             return (1 - probability)
         elif tipo == "=":
             # P(x=k)
-            if (guess_amount < n_guess_at_hand):  # se o jogador possuir mais dados com a figura escolhida do que o número no palpite
+            # se o jogador possuir mais dados com a figura escolhida do que o número no palpite
+            if (guess_amount < n_guess_at_hand):
                 probability = 0
-            elif ((n_other_dice < guess_amount) and (n_guess_at_hand == 0)):  # se o jogador não tiver nenhum dado com a figura do palpite e número dos outros dados for menor do que a quantidade do palpite
+            # se o jogador não tiver nenhum dado com a figura do palpite
+            # e número dos outros dados for menor do que a quantidade do palpite
+            elif ((n_other_dice < guess_amount) and (n_guess_at_hand == 0)):
                 probability = 0
             elif (guess_amount > n_dice):  # se o número de dados no palpite for maior do que o número de dados na mesa
                 probability = 0
             else:
                 probability = self.bernoulli(guess_amount - n_guess_at_hand, n_other_dice)
-            # print(f"{self.__name}:\tProbabilidade de haver exatamente {guess_amount} dado(s) mostrando o número {guess_figure}:\t{probability}")
+            # print(f"{self.__name}:\tProbabilidade de haver exatamente {guess_amount} dado(s)
+            # mostrando o número {guess_figure}:\t{probability}")
             return (probability)
 
     # determina o palpite mínimo superior a um determinado palpite
-    def min_next_guess(self, previous_guess):
+    @staticmethod
+    def min_next_guess(previous_guess):
         next_guess = previous_guess
         previous_guess_amount = previous_guess[0]
         previous_guess_figure = previous_guess[1]
 
-        next_figure = (previous_guess_figure + 1) if (previous_guess_figure < 6) else (
-            1)  # TODO: ajustar expressão para dados com um número de dados qualquer
+        # TODO: ajustar expressão para dados com um número de dados qualquer
+        next_figure = (previous_guess_figure + 1) if (previous_guess_figure < 6) else (1)
         next_amount = previous_guess_amount
 
         if (next_figure == 1):  # se o palpite pulou de 6 para 1, aumentar o número de dados no palpite também
@@ -179,13 +209,16 @@ class Player:
         return (next_guess)
 
     # calcula a probabilidade de cada decisão possível e decide a melhor jogada
-    def make_guess(self, previous_guess, players_in_table=[]):
-        if players_in_table == []:
+    def make_guess(self, previous_guess, players_in_table=None):
+        if players_in_table is None:
             print("Error - list of players is empty")
             return ()
-        previous_guess_amount = previous_guess[
-            0]  # numero de dados no palpite anterior (de 1 ao máximo de dados possíveis)
-        previous_guess_figure = previous_guess[1]  # tipo de dado no palpite anterior (de 1 a 6)
+
+        # numero de dados no palpite anterior (de 1 ao máximo de dados possíveis)
+        previous_guess_amount = previous_guess[0]
+
+        # tipo de dado no palpite anterior (de 1 a 6)
+        previous_guess_figure = previous_guess[1]
 
         if self.__decision_method == "Bernoulli":
             new_guess = self.make_bernoulli_guess(previous_guess, players_in_table)
@@ -193,11 +226,12 @@ class Player:
             return (new_guess)
         return ()
 
-    def make_bernoulli_guess(self, previous_guess, players_in_table=[]):
+    def make_bernoulli_guess(self, previous_guess, players_in_table=None):
         # se for o início da rodada, o palpite lido será [0,0]
-        # no início, o computador sempre fará um palpite baseado nas peças que tem em mãos # TODO: implementar escolha aleatória do palpite inicial
+        # no início, o computador sempre fará um palpite baseado nas peças que tem em mãos
+        # TODO: implementar escolha aleatória do palpite inicial
 
-        self.possible_guesses = {} # reinicia o dicionário de palpites possíveis
+        self.possible_guesses = {}  # reinicia o dicionário de palpites possíveis
         if (previous_guess == [0, 0]):
             maximo = 1
             figure = 1
@@ -233,13 +267,14 @@ class Player:
 
         self.possible_guesses[tuple(best_guess)] = p_best_guess  # add the guess to the dictionary of guesses
 
-        new_guess = self.min_next_guess([1,1])  # determine o mínimo palpite válido, começando do menor palpite possível
+        new_guess = self.min_next_guess(
+            [1, 1])  # determine o mínimo palpite válido, começando do menor palpite possível
 
         while (True):  # busca exaustiva pelo palpite com maior probabilidade de sucesso
 
-            if not is_guess_valid(new_guess, previous_guess): # caso o palpite próximo não seja válido
+            if not is_guess_valid(new_guess, previous_guess):  # caso o palpite próximo não seja válido
                 new_guess = self.min_next_guess(new_guess)  # pule este palpite
-                continue # pule o palpite inválido e avalie o próximo palplite
+                continue  # pule o palpite inválido e avalie o próximo palplite
 
             new_guess_amount = new_guess[0]
 
@@ -257,7 +292,6 @@ class Player:
 
             new_guess = self.min_next_guess(new_guess)  # determine o mínimo palpite próximo
 
-
             new_guess_amount = new_guess[0]
             if (new_guess_amount > count_dice_in_table(players_in_table) - self.number_of_dice_remaining):
                 break
@@ -265,19 +299,20 @@ class Player:
         chosen_guess = best_guess
 
         # ordena o dicionário de possíveis ações por ordem decrescente de probabilidade
-        self.possible_guesses = dict(sorted(self.possible_guesses.items(), key=lambda a:a[1], reverse = True))
+        self.possible_guesses = dict(sorted(self.possible_guesses.items(), key=lambda a: a[1], reverse=True))
         # retira uma amostra das possíveis ações
-        self.possible_guesses = dict(islice(self.possible_guesses.items(), min(10,len(self.possible_guesses))))
+        self.possible_guesses = dict(islice(self.possible_guesses.items(), min(10, len(self.possible_guesses))))
 
-        #pondera as probabilidades do conjunto amostral; as escolhas de maior probabilidade ganham um peso maior
+        # pondera as probabilidades do conjunto amostral; as escolhas de maior probabilidade ganham um peso maior
         for key, probability in self.possible_guesses.items():
             self.possible_guesses[key] = probability
         print(self.possible_guesses)
-        #sorteia uma ação dentre a amostra de ações
+        # sorteia uma ação dentre a amostra de ações
         # ações com maior probabilidade de acerto tem peso maior no sorteio
         chosen_guess = choices(
-            list(self.possible_guesses.keys()), weights = tuple(self.possible_guesses.values()), k =1
-        )[0]
+            list(self.possible_guesses.keys()),
+            weights=tuple(self.possible_guesses.values()),
+            k=1)[0]
 
         # print(best_guess)
         # a maior probabilidade de sucesso está em dizer que o palpite anterior estava exatamente correto
@@ -298,5 +333,3 @@ class Player:
               f"\t{p_best_guess}\n")"""
         print(f"{self.name}:\tPalpite: {guess_amount} dados mostrando o número {guess_figure}")
         return (chosen_guess)
-
-
